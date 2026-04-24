@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  mobile    String   @unique
+  password  String
+  role      String   @default("farmer") // "farmer" | "admin"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  farmer    Farmer?
+}
+
+model Farmer {
+  id            String   @id @default(cuid())
+  farmerId      String   @unique // OCF-SPIN-XXXX
+  name          String
+  fatherName    String   @default("")
+  mobile        String   @unique
+  whatsapp      String   @default("")
+  aadhar        String   @default("")
+  gender        String   @default("")
+  dob           String   @default("")
+  caste         String   @default("")
+  education     String   @default("")
+
+  // Address
+  state         String   @default("")
+  district      String   @default("")
+  mandal        String   @default("")
+  village       String   @default("")
+  hamlet        String   @default("")
+  pincode       String   @default("")
+
+  // Section 5: Farming Experience
+  farmingExperienceYears String @default("")  // range: "0-5", "5-10", etc.
+  isOrganicFarmer        String @default("no") // "yes" | "no"
+  organicSinceYears      String @default("")  // range: "0", "0-2", etc.
+
+  // Section 8: Weeds (JSON string)
+  weedsData     String   @default("{}") // JSON: { weedType: percentage }
+
+  // Section 9: Water Source
+  waterSource   String   @default("")  // borewell, canal, rain, etc.
+  irrigationType String  @default("")
+
+  // Section 10: Equipment
+  ownsEquipment        String @default("no")
+  equipmentDetails     String @default("") // comma-separated list
+  nearestEquipmentKm   String @default("") // range: "<2", "2-5", etc.
+
+  // Section 12: Banking
+  bankName         String @default("")
+  branchName       String @default("")
+  accountNumber    String @default("")
+  ifscCode         String @default("")
+  upiId            String @default("")
+
+  // Section 13: Consent
+  consentGiven     String @default("no") // "yes" | "no"
+  consentDate      String @default("")
+
+  // Status: "draft" | "submitted" | "edit_requested" | "edit_approved"
+  status           String @default("draft")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  lands         Land[]
+  crops         Crop[]
+  economics     Economics?
+}
+
+model Land {
+  id          String  @id @default(cuid())
+  surveyNo    String
+  state       String  @default("")
+  district    String  @default("")
+  mandal      String  @default("")
+  village     String  @default("")
+  acreage     String  @default("") // range: "<1", "1-3", etc.
+  landType    String  @default("") // dry, wet, irrigated
+  soilType    String  @default("")
+  hasSoilReport String @default("no") // "yes" | "no"
+  soilReportUrl String @default("")
+
+  farmerId    String
+  farmer      Farmer  @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+}
+
+model Crop {
+  id          String  @id @default(cuid())
+  season      String  // "kharif" | "rabi" | "perennial"
+  cropName    String
+  acreage     String  @default("") // range: "<1", "1-3", etc.
+  variety     String  @default("")
+  yearlyYield String  @default("")
+
+  farmerId    String
+  farmer      Farmer  @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+}
+
+model Economics {
+  id                  String  @id @default(cuid())
+  pesticideCostPerYear String  @default("") // range: "0", "<5000", etc.
+  fertilizerCostPerYear String @default("") // range
+  seedCostPerYear     String  @default("") // range
+  laborWagesPerYear   String  @default("") // range
+  totalIncomePerYear  String  @default("") // range
+  marketDistance       String  @default("") // range: "<2", "2-5", etc.
+
+  farmerId            String  @unique
+  farmer              Farmer  @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+}
