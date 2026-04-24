@@ -91,8 +91,15 @@ export default function AdminDashboard() {
   const pendingRequests = useMemo(() => farmers.filter(f => f.status === "edit_requested"), [farmers]);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+    if (status === "unauthenticated") {
+      router.push("/login");
+    } else if (status === "authenticated" && session?.user) {
+      const userRole = (session.user as { role?: string }).role;
+      if (userRole !== "admin") {
+        router.push("/home");
+      }
+    }
+  }, [status, session, router]);
 
   // Apply custom filters
   const filteredData = useMemo(() => {
@@ -248,6 +255,18 @@ export default function AdminDashboard() {
         <div className="text-green-800 text-lg">Loading dashboard...</div>
       </div>
     );
+  }
+
+  // Check if user is admin
+  if (status === "authenticated" && session?.user) {
+    const userRole = (session.user as { role?: string }).role;
+    if (userRole !== "admin") {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-amber-50 to-emerald-50">
+          <div className="text-red-600 text-lg">Access denied. Admin privileges required.</div>
+        </div>
+      );
+    }
   }
 
   return (
