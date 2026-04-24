@@ -83,6 +83,96 @@ After registration, farmers can log in to access their dashboard and complete th
 - **Run migrations**: `npm run db:migrate`
 - **Seed database**: `npm run db:seed`
 
+## Production Deployment
+
+### Important Notes for Netlify/Vercel Deployment
+
+**⚠️ SQLite is NOT suitable for production serverless deployments!**
+
+The local development setup uses SQLite (`dev.db`), which works great for local development but **will not work** on serverless platforms like Netlify or Vercel because:
+- The database file cannot persist across serverless function invocations
+- Each function runs in an isolated environment
+- File system is read-only or ephemeral
+
+### Setting Up for Production
+
+#### 1. Choose a Production Database
+
+We recommend using a managed PostgreSQL database:
+- **[Supabase](https://supabase.com/)** - Free tier available, easy setup
+- **[Neon](https://neon.tech/)** - Serverless Postgres with free tier
+- **[Railway](https://railway.app/)** - Simple deployment with database
+- **[PlanetScale](https://planetscale.com/)** - MySQL alternative
+
+#### 2. Update Prisma Schema for PostgreSQL
+
+Edit `prisma/schema.prisma`:
+
+```prisma
+datasource db {
+  provider = "postgresql"  // Changed from "sqlite"
+  url      = env("DATABASE_URL")
+}
+```
+
+#### 3. Set Environment Variables
+
+In your deployment platform (Netlify, Vercel, etc.), set these environment variables:
+
+```bash
+# Production database connection string
+DATABASE_URL="postgresql://user:password@host:5432/dbname"
+
+# Generate a secure secret: openssl rand -base64 32
+NEXTAUTH_SECRET="your-secure-random-string"
+
+# Your production URL
+NEXTAUTH_URL="https://your-app.netlify.app"
+```
+
+**For Netlify:**
+1. Go to Site Settings → Environment Variables
+2. Add each variable with its value
+3. Redeploy the site
+
+**For Vercel:**
+1. Go to Project Settings → Environment Variables
+2. Add each variable for Production environment
+3. Redeploy
+
+#### 4. Run Migrations on Production Database
+
+After setting up your production database:
+
+```bash
+# Set your production DATABASE_URL temporarily
+export DATABASE_URL="your-production-database-url"
+
+# Run migrations
+npx prisma migrate deploy
+
+# Seed admin user (optional)
+npm run db:seed
+```
+
+### Troubleshooting Production Errors
+
+If you see errors like:
+- `500 Internal Server Error` on `/api/register`
+- `401 Unauthorized` on `/api/auth/callback/credentials`
+
+**Common causes:**
+1. ❌ `DATABASE_URL` not set in production environment
+2. ❌ Using SQLite in production (won't work on serverless)
+3. ❌ `NEXTAUTH_SECRET` not set or using default value
+4. ❌ Database migrations not run on production database
+
+**Check your logs:**
+- Netlify: Functions → Function logs
+- Vercel: Deployments → View Function logs
+
+The application now includes detailed error logging to help diagnose issues.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

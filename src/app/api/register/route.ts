@@ -51,7 +51,36 @@ export async function POST(req: NextRequest) {
       message: "Registration successful",
       farmerId: user.farmer?.farmerId,
     });
-  } catch {
-    return NextResponse.json({ error: "Registration failed" }, { status: 500 });
+  } catch (error) {
+    console.error("Registration error:", error);
+
+    // Check for Prisma-specific errors
+    if (error && typeof error === "object" && "code" in error) {
+      const prismaError = error as { code: string; meta?: { cause?: string } };
+
+      // Database connection error
+      if (prismaError.code === "P1001" || prismaError.code === "P1003") {
+        return NextResponse.json(
+          { error: "Database connection failed. Please check environment configuration." },
+          { status: 500 }
+        );
+      }
+
+      // Unique constraint violation
+      if (prismaError.code === "P2002") {
+        return NextResponse.json(
+          { error: "Mobile number already registered" },
+          { status: 409 }
+        );
+      }
+    }
+
+    return NextResponse.json(
+      {
+        error: "Registration failed",
+        details: process.env.NODE_ENV === "development" ? String(error) : undefined
+      },
+      { status: 500 }
+    );
   }
 }

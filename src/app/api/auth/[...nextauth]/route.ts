@@ -14,23 +14,28 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.mobile || !credentials?.password) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { mobile: credentials.mobile },
-          include: { farmer: true },
-        });
+        try {
+          const user = await prisma.user.findUnique({
+            where: { mobile: credentials.mobile },
+            include: { farmer: true },
+          });
 
-        if (!user) return null;
+          if (!user) return null;
 
-        const valid = await bcrypt.compare(credentials.password, user.password);
-        if (!valid) return null;
+          const valid = await bcrypt.compare(credentials.password, user.password);
+          if (!valid) return null;
 
-        return {
-          id: user.id,
-          name: user.farmer?.name ?? "Admin",
-          email: user.mobile,
-          role: user.role,
-          farmerId: user.farmer?.farmerId ?? null,
-        } as  { id: string; name: string; email: string; role: string; farmerId: string | null };
+          return {
+            id: user.id,
+            name: user.farmer?.name ?? "Admin",
+            email: user.mobile,
+            role: user.role,
+            farmerId: user.farmer?.farmerId ?? null,
+          } as  { id: string; name: string; email: string; role: string; farmerId: string | null };
+        } catch (error) {
+          console.error("Auth error:", error);
+          return null;
+        }
       },
     }),
   ],
