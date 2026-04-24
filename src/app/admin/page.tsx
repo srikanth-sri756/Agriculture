@@ -21,7 +21,7 @@ import LanguageToggle from "@/components/language-toggle";
 import * as XLSX from "xlsx";
 import {
   Sprout, LogOut, Search, Filter, Download, ChevronUp, ChevronDown,
-  ChevronLeft, ChevronRight, Users, Landmark, MapPin, BarChart3, CheckCircle, XCircle, Clock, Edit,
+  ChevronLeft, ChevronRight, Users, Landmark, MapPin, BarChart3, CheckCircle, XCircle, Clock,
 } from "lucide-react";
 
 interface FarmerRow {
