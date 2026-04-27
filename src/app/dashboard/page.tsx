@@ -184,7 +184,10 @@ export default function DashboardPage() {
           <div className="flex items-center gap-3">
             <LanguageToggle />
             <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={async () => {
+                await signOut({ redirect: false });
+                window.location.href = "/login";
+              }}
               className="flex items-center gap-1.5 px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg text-sm transition"
             >
               <LogOut className="w-4 h-4" />

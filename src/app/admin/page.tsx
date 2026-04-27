@@ -293,7 +293,10 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-2">
             <LanguageToggle />
             <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={async () => {
+                await signOut({ redirect: false });
+                window.location.href = "/login";
+              }}
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-red-600 hover:bg-red-50 text-sm"
             >
               <LogOut className="w-4 h-4" />
