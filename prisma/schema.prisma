@@ -95,6 +95,7 @@ model Land {
   soilType    String  @default("")
   hasSoilReport String @default("no") // "yes" | "no"
   soilReportUrl String @default("")
+  photoUrl    String  @default("") // base64 data URL of land/field photo
 
   farmerId    String
   farmer      Farmer  @relation(fields: [farmerId], references: [id], onDelete: Cascade)

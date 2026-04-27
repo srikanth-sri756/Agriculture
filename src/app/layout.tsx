@@ -18,6 +18,13 @@ export const metadata: Metadata = {
   description: "Organic Carbon Farming Management System",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#14532d",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{

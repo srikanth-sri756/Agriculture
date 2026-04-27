@@ -48,7 +48,7 @@ interface FarmerData {
   upiId: string;
   consentGiven: string;
   status: string;
-  lands: { surveyNo: string; acreage: number; landType: string; soilType: string; district: string; village: string }[];
+  lands: { surveyNo: string; acreage: number; landType: string; soilType: string; district: string; village: string; photoUrl?: string }[];
   crops: { season: string; cropName: string; acreage: number; variety: string; yearlyYield: string; photoUrl?: string }[];
   economics: {
     pesticideCostPerYear: number;
@@ -311,29 +311,28 @@ export default function DashboardPage() {
         {/* Land Details (full width) */}
         {farmer.lands.length > 0 && (
           <Section icon={Landmark} title={t("dash.landInfo", lang)} delay={400}>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-500 border-b">
-                    <th className="py-2 pr-4">{t("field.surveyNo", lang)}</th>
-                    <th className="py-2 pr-4">{t("field.acreage", lang)}</th>
-                    <th className="py-2 pr-4">{t("field.landType", lang)}</th>
-                    <th className="py-2 pr-4">{t("field.soilType", lang)}</th>
-                    <th className="py-2">{t("field.district", lang)}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {farmer.lands.map((land, i) => (
-                    <tr key={i} className="border-b border-gray-50">
-                      <td className="py-2 pr-4 font-medium">{land.surveyNo}</td>
-                      <td className="py-2 pr-4">{land.acreage}</td>
-                      <td className="py-2 pr-4">{land.landType}</td>
-                      <td className="py-2 pr-4">{land.soilType}</td>
-                      <td className="py-2">{land.district}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {farmer.lands.map((land, i) => (
+                <div key={i} className="rounded-xl border border-gray-200 overflow-hidden bg-gray-50">
+                  <div className="aspect-video bg-emerald-100 flex items-center justify-center">
+                    {land.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={land.photoUrl} alt={land.surveyNo} className="w-full h-full object-cover" />
+                    ) : (
+                      <Landmark className="w-10 h-10 text-emerald-300" />
+                    )}
+                  </div>
+                  <div className="p-3 space-y-1 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-emerald-900">#{land.surveyNo || i + 1}</span>
+                      <span className="text-xs uppercase tracking-wide px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">{land.landType}</span>
+                    </div>
+                    <div className="text-gray-600">{t("field.acreage", lang)}: <span className="text-gray-900">{land.acreage}</span></div>
+                    <div className="text-gray-600">{t("field.soilType", lang)}: <span className="text-gray-900">{land.soilType}</span></div>
+                    <div className="text-gray-600">{t("field.district", lang)}: <span className="text-gray-900">{land.district}</span></div>
+                  </div>
+                </div>
+              ))}
             </div>
           </Section>
         )}

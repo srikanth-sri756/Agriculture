@@ -36,6 +36,7 @@ export const landSchema = z.object({
     landType: z.string().min(1, "Land type is required"),
     soilType: z.string().min(1, "Soil type is required"),
     hasSoilReport: z.string().min(1, "Soil report status required"),
+    photoUrl: z.string().optional().default(""),
   })).min(1, "At least one land parcel required"),
 });
 

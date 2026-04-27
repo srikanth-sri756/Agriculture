@@ -61,6 +61,13 @@ export async function PUT(req: NextRequest) {
       }
     }
   }
+  if (Array.isArray(body?.lands)) {
+    for (const l of body.lands) {
+      if (l?.photoUrl !== undefined && !isValidPhoto(l.photoUrl)) {
+        return NextResponse.json({ error: "Invalid land photo" }, { status: 400 });
+      }
+    }
+  }
 
   const farmer = await prisma.farmer.findFirst({
     where: { userId: user.userId },

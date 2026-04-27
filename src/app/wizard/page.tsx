@@ -56,7 +56,7 @@ function getDefaultValues(step: number): any {
   switch (step) {
     case 1: return { name: "", fatherName: "", mobile: "", whatsapp: "", aadhar: "", gender: "", dob: "", caste: "", education: "", photoUrl: "" };
     case 2: return { state: "", district: "", mandal: "", village: "", hamlet: "", pincode: "" };
-    case 3: return { lands: [{ surveyNo: "", state: "", district: "", mandal: "", village: "", acreage: "", landType: "", soilType: "", hasSoilReport: "no" }] };
+    case 3: return { lands: [{ surveyNo: "", state: "", district: "", mandal: "", village: "", acreage: "", landType: "", soilType: "", hasSoilReport: "no", photoUrl: "" }] };
     case 4: return { crops: [{ season: "kharif", cropName: "", acreage: "", variety: "", yearlyYield: "", photoUrl: "" }] };
     case 5: return { crops: [{ season: "rabi", cropName: "", acreage: "", variety: "", yearlyYield: "", photoUrl: "" }] };
     case 6: return { crops: [{ season: "perennial", cropName: "", acreage: "", variety: "", yearlyYield: "", photoUrl: "" }] };
@@ -761,11 +761,21 @@ function StepForm({ step, lang, defaultValues, onSubmit, isLastStep, submitting 
                 <label className={labelCls}>{t("field.soilReport", lang)}</label>
                 {chipSelect(`lands.${idx}.hasSoilReport`, yesNoOpts, 2)}
               </div>
+              <div className="pt-2 border-t border-green-200">
+                <PhotoUploadField
+                  value={watch(`lands.${idx}.photoUrl`) || ""}
+                  onChange={(v) => setValue(`lands.${idx}.photoUrl`, v, { shouldValidate: false })}
+                  lang={lang}
+                  label={lang === "en" ? "Field Photo (optional)" : "పొలం ఫోటో (ఐచ్ఛికం)"}
+                  shape="square"
+                  capture="environment"
+                />
+              </div>
             </div>
           ))}
           <button
             type="button"
-            onClick={() => landsArray.append({ surveyNo: "", state: "", district: "", mandal: "", village: "", acreage: "", landType: "", soilType: "", hasSoilReport: "no" })}
+            onClick={() => landsArray.append({ surveyNo: "", state: "", district: "", mandal: "", village: "", acreage: "", landType: "", soilType: "", hasSoilReport: "no", photoUrl: "" })}
             className="flex items-center gap-1 px-4 py-2 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition text-sm font-medium"
           >
             <Plus className="w-4 h-4" /> {t("action.addLand", lang)}
