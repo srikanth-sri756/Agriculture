@@ -24,7 +24,7 @@ import {
   consentSchema,
 } from "@/lib/schemas";
 import {
-  Sprout, ChevronLeft, ChevronRight, Save, Send, Plus, Trash2, LogOut, AlertCircle, Check, MapPin, Camera, X,
+  Sprout, ChevronLeft, ChevronRight, Save, Send, Plus, Trash2, LogOut, AlertCircle, Check, MapPin, Camera, X, CheckCircle2, PartyPopper,
 } from "lucide-react";
 import { getStates, getDistricts, getMandals, getVillages } from "@/lib/area-data";
 
@@ -81,6 +81,7 @@ export default function WizardPage() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [statusChecked, setStatusChecked] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Check farmer status — redirect to dashboard if not editable
   useEffect(() => {
@@ -211,7 +212,7 @@ export default function WizardPage() {
 
       if (res.ok) {
         localStorage.removeItem(STORAGE_KEY);
-        router.push("/dashboard");
+        setShowSuccess(true);
       } else {
         const err = await res.json();
         setMessage(err.error || t("msg.error", lang));
@@ -220,6 +221,11 @@ export default function WizardPage() {
       setMessage(t("msg.error", lang));
     }
     setSubmitting(false);
+  };
+
+  const closeSuccess = () => {
+    setShowSuccess(false);
+    router.push("/dashboard");
   };
 
   return (
@@ -302,6 +308,56 @@ export default function WizardPage() {
           </div>
         </div>
       </div>
+
+      {showSuccess && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+          onClick={closeSuccess}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden animate-pop-in"
+          >
+            <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-emerald-500 via-green-500 to-amber-400" />
+            <button
+              type="button"
+              onClick={closeSuccess}
+              aria-label="Close"
+              className="absolute top-3 right-3 p-1.5 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="p-7 text-center">
+              <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center ring-pulse">
+                <CheckCircle2 className="w-12 h-12 text-emerald-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-green-900 flex items-center justify-center gap-2">
+                <PartyPopper className="w-6 h-6 text-amber-500" />
+                {lang === "en" ? "Submitted Successfully!" : "విజయవంతంగా సమర్పించబడింది!"}
+              </h2>
+              <p className="mt-2 text-sm text-gray-600">
+                {lang === "en"
+                  ? "Thank you! Your details have been saved. Our team will review and get back to you."
+                  : "ధన్యవాదాలు! మీ వివరాలు సేవ్ చేయబడ్డాయి. మా బృందం సమీక్షించి మిమ్మల్ని సంప్రదిస్తుంది."}
+              </p>
+              <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 border border-green-200 text-green-800 text-xs font-medium">
+                <Sprout className="w-3.5 h-3.5" />
+                {lang === "en" ? "Farmer ID:" : "రైతు ID:"} <span className="font-bold">{farmerId}</span>
+              </div>
+              <button
+                type="button"
+                onClick={closeSuccess}
+                className="mt-6 w-full shimmer-btn hover-lift bg-gradient-to-r from-emerald-600 to-green-700 text-white font-semibold py-3 rounded-xl transition flex items-center justify-center gap-2"
+              >
+                {lang === "en" ? "Go to Dashboard" : "డాష్‌బోర్డ్‌కి వెళ్ళండి"}
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
