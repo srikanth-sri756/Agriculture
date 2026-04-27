@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLang } from "@/components/providers";
 import { t } from "@/lib/i18n";
 import LanguageToggle from "@/components/language-toggle";
+import PageBackground from "@/components/page-background";
 import {
   Sprout, LogOut, User, MapPin, Landmark, TrendingUp, Tractor, Droplets,
   Leaf, CreditCard, ClipboardCheck, Edit, Clock, CheckCircle, ArrowRight,
@@ -24,6 +25,7 @@ interface FarmerData {
   dob: string;
   caste: string;
   education: string;
+  photoUrl: string;
   state: string;
   district: string;
   mandal: string;
@@ -47,7 +49,7 @@ interface FarmerData {
   consentGiven: string;
   status: string;
   lands: { surveyNo: string; acreage: number; landType: string; soilType: string; district: string; village: string }[];
-  crops: { season: string; cropName: string; acreage: number; variety: string; yearlyYield: string }[];
+  crops: { season: string; cropName: string; acreage: number; variety: string; yearlyYield: string; photoUrl?: string }[];
   economics: {
     pesticideCostPerYear: number;
     fertilizerCostPerYear: number;
@@ -91,10 +93,13 @@ function InfoRow({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-function Section({ icon: Icon, title, children }: { icon: typeof User; title: string; children: React.ReactNode }) {
+function Section({ icon: Icon, title, children, delay = 0 }: { icon: typeof User; title: string; children: React.ReactNode; delay?: number }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="flex items-center gap-2 px-5 py-3 bg-green-50 border-b border-green-100">
+    <div
+      className="glass-card rounded-xl overflow-hidden hover-lift animate-fade-up"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="flex items-center gap-2 px-5 py-3 bg-green-50/80 border-b border-green-100">
         <Icon className="w-5 h-5 text-green-700" />
         <h3 className="font-semibold text-green-900">{title}</h3>
       </div>
@@ -145,8 +150,9 @@ export default function DashboardPage() {
 
   if (authStatus === "loading" || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-amber-50 to-emerald-50">
-        <div className="text-green-800 text-lg">Loading...</div>
+      <div className="min-h-screen relative flex items-center justify-center">
+        <PageBackground />
+        <div className="text-green-800 text-lg animate-pulse">Loading...</div>
       </div>
     );
   }
@@ -161,12 +167,13 @@ export default function DashboardPage() {
   })();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-amber-50 to-emerald-50">
+    <div className="min-h-screen relative">
+      <PageBackground />
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-green-100">
+      <header className="sticky top-0 z-50 glass-header border-b border-green-100">
         <div className="max-w-5xl mx-auto px-4 h-16 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-800 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-green-800 rounded-xl flex items-center justify-center ring-pulse">
               <Sprout className="w-6 h-6 text-amber-300" />
             </div>
             <div>
@@ -189,13 +196,23 @@ export default function DashboardPage() {
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
         {/* Profile Header Card */}
-        <div className="bg-white rounded-2xl border border-green-200 shadow-sm p-6">
+        <div className="glass-card rounded-2xl p-6 animate-fade-up">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-green-900">{farmer.name}</h1>
-              <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
-                <span>{t("dash.farmerId", lang)}: <strong className="text-green-800">{farmer.farmerId}</strong></span>
-                <StatusBadge status={farmer.status} lang={lang} />
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-green-50 border-2 border-green-200 overflow-hidden flex items-center justify-center flex-shrink-0 ring-pulse">
+                {farmer.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={farmer.photoUrl} alt={farmer.name} className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-9 h-9 text-green-400" />
+                )}
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-green-900">{farmer.name}</h1>
+                <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                  <span>{t("dash.farmerId", lang)}: <strong className="text-green-800">{farmer.farmerId}</strong></span>
+                  <StatusBadge status={farmer.status} lang={lang} />
+                </div>
               </div>
             </div>
             <div className="flex items-start gap-2">
@@ -203,7 +220,7 @@ export default function DashboardPage() {
                 <button
                   onClick={() => requestEdit.mutate()}
                   disabled={requestEdit.isPending}
-                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-400 transition disabled:opacity-50"
+                  className="shimmer-btn hover-lift flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-400 transition disabled:opacity-50"
                 >
                   <Edit className="w-4 h-4" />
                   {requestEdit.isPending ? "..." : t("dash.requestEdit", lang)}
@@ -212,7 +229,7 @@ export default function DashboardPage() {
               {farmer.status === "edit_approved" && (
                 <button
                   onClick={() => router.push("/wizard")}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-500 transition"
+                  className="shimmer-btn hover-lift flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-500 transition"
                 >
                   <ArrowRight className="w-4 h-4" />
                   {t("dash.editNow", lang)}
@@ -239,7 +256,7 @@ export default function DashboardPage() {
         {/* Data Sections Grid */}
         <div className="grid md:grid-cols-2 gap-6">
           {/* Personal Info */}
-          <Section icon={User} title={t("dash.personalInfo", lang)}>
+          <Section icon={User} title={t("dash.personalInfo", lang)} delay={80}>
             <InfoRow label={t("field.name", lang)} value={farmer.name} />
             <InfoRow label={t("field.fatherName", lang)} value={farmer.fatherName} />
             <InfoRow label={t("field.mobile", lang)} value={farmer.mobile} />
@@ -252,7 +269,7 @@ export default function DashboardPage() {
           </Section>
 
           {/* Address */}
-          <Section icon={MapPin} title={t("dash.addressInfo", lang)}>
+          <Section icon={MapPin} title={t("dash.addressInfo", lang)} delay={160}>
             <InfoRow label={t("field.state", lang)} value={farmer.state} />
             <InfoRow label={t("field.district", lang)} value={farmer.district} />
             <InfoRow label={t("field.mandal", lang)} value={farmer.mandal} />
@@ -262,7 +279,7 @@ export default function DashboardPage() {
           </Section>
 
           {/* Farming Details */}
-          <Section icon={Leaf} title={t("dash.farmingInfo", lang)}>
+          <Section icon={Leaf} title={t("dash.farmingInfo", lang)} delay={240}>
             <InfoRow label={t("field.experience", lang)} value={farmer.farmingExperienceYears} />
             <InfoRow label={t("field.organicFarmer", lang)} value={farmer.isOrganicFarmer} />
             <InfoRow label={t("field.organicSince", lang)} value={farmer.organicSinceYears} />
@@ -282,7 +299,7 @@ export default function DashboardPage() {
           </Section>
 
           {/* Banking */}
-          <Section icon={CreditCard} title={t("dash.bankingInfo", lang)}>
+          <Section icon={CreditCard} title={t("dash.bankingInfo", lang)} delay={320}>
             <InfoRow label={t("field.bankName", lang)} value={farmer.bankName} />
             <InfoRow label={t("field.branchName", lang)} value={farmer.branchName} />
             <InfoRow label={t("field.accountNumber", lang)} value={farmer.accountNumber} />
@@ -293,7 +310,7 @@ export default function DashboardPage() {
 
         {/* Land Details (full width) */}
         {farmer.lands.length > 0 && (
-          <Section icon={Landmark} title={t("dash.landInfo", lang)}>
+          <Section icon={Landmark} title={t("dash.landInfo", lang)} delay={400}>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -323,37 +340,36 @@ export default function DashboardPage() {
 
         {/* Crop Details (full width) */}
         {farmer.crops.length > 0 && (
-          <Section icon={Tractor} title={t("dash.cropInfo", lang)}>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-gray-500 border-b">
-                    <th className="py-2 pr-4">{t("field.season", lang)}</th>
-                    <th className="py-2 pr-4">{t("field.cropName", lang)}</th>
-                    <th className="py-2 pr-4">{t("field.acreage", lang)}</th>
-                    <th className="py-2 pr-4">{t("field.variety", lang)}</th>
-                    <th className="py-2">{t("field.yearlyYield", lang)}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {farmer.crops.map((crop, i) => (
-                    <tr key={i} className="border-b border-gray-50">
-                      <td className="py-2 pr-4 capitalize">{crop.season}</td>
-                      <td className="py-2 pr-4 font-medium">{crop.cropName}</td>
-                      <td className="py-2 pr-4">{crop.acreage}</td>
-                      <td className="py-2 pr-4">{crop.variety}</td>
-                      <td className="py-2">{crop.yearlyYield}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <Section icon={Tractor} title={t("dash.cropInfo", lang)} delay={480}>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {farmer.crops.map((crop, i) => (
+                <div key={i} className="rounded-xl border border-gray-200 overflow-hidden bg-gray-50">
+                  <div className="aspect-video bg-green-100 flex items-center justify-center">
+                    {crop.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={crop.photoUrl} alt={crop.cropName} className="w-full h-full object-cover" />
+                    ) : (
+                      <Leaf className="w-10 h-10 text-green-300" />
+                    )}
+                  </div>
+                  <div className="p-3 space-y-1 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-green-900">{crop.cropName}</span>
+                      <span className="text-xs uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">{crop.season}</span>
+                    </div>
+                    <div className="text-gray-600">{t("field.acreage", lang)}: <span className="text-gray-900">{crop.acreage}</span></div>
+                    <div className="text-gray-600">{t("field.variety", lang)}: <span className="text-gray-900">{crop.variety}</span></div>
+                    <div className="text-gray-600">{t("field.yearlyYield", lang)}: <span className="text-gray-900">{crop.yearlyYield}</span></div>
+                  </div>
+                </div>
+              ))}
             </div>
           </Section>
         )}
 
         {/* Economics (full width) */}
         {farmer.economics && (
-          <Section icon={TrendingUp} title={t("dash.economicsInfo", lang)}>
+          <Section icon={TrendingUp} title={t("dash.economicsInfo", lang)} delay={560}>
             <div className="grid sm:grid-cols-2 gap-x-8">
               <InfoRow label={t("field.pesticideCost", lang)} value={`₹${farmer.economics.pesticideCostPerYear.toLocaleString()}`} />
               <InfoRow label={t("field.fertilizerCost", lang)} value={`₹${farmer.economics.fertilizerCostPerYear.toLocaleString()}`} />
@@ -366,7 +382,7 @@ export default function DashboardPage() {
         )}
 
         {/* Consent */}
-        <Section icon={ClipboardCheck} title={t("step.13", lang)}>
+        <Section icon={ClipboardCheck} title={t("step.13", lang)} delay={640}>
           <div className="flex items-center gap-2">
             <CheckCircle className={`w-5 h-5 ${farmer.consentGiven === "yes" ? "text-green-600" : "text-gray-400"}`} />
             <span className={`text-sm font-medium ${farmer.consentGiven === "yes" ? "text-green-700" : "text-gray-500"}`}>

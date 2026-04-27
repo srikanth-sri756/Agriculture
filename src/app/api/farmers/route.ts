@@ -37,6 +37,31 @@ export async function PUT(req: NextRequest) {
   const user = session.user as { userId?: string };
   const body = await req.json();
 
+  // Reject obviously oversized payloads to limit abuse via base64 image fields.
+  // ~3MB of JSON is plenty for personal data + several resized photos.
+  if (JSON.stringify(body).length > 3 * 1024 * 1024) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  }
+
+  // Helper: photo data URLs must be image/* and <= ~600KB after encoding.
+  const MAX_PHOTO_BYTES = 600 * 1024;
+  const isValidPhoto = (v: unknown): v is string => {
+    if (typeof v !== "string") return false;
+    if (v === "") return true;
+    if (!v.startsWith("data:image/")) return false;
+    return v.length <= MAX_PHOTO_BYTES;
+  };
+  if (body?.photoUrl !== undefined && !isValidPhoto(body.photoUrl)) {
+    return NextResponse.json({ error: "Invalid profile photo" }, { status: 400 });
+  }
+  if (Array.isArray(body?.crops)) {
+    for (const c of body.crops) {
+      if (c?.photoUrl !== undefined && !isValidPhoto(c.photoUrl)) {
+        return NextResponse.json({ error: "Invalid crop photo" }, { status: 400 });
+      }
+    }
+  }
+
   const farmer = await prisma.farmer.findFirst({
     where: { userId: user.userId },
   });
@@ -53,6 +78,15 @@ export async function PUT(req: NextRequest) {
   // Update farmer basic data
   const {
     lands, crops, economics,
+    // Strip identity / immutable / server-managed fields so they can't be
+    // overwritten from the client (prevents P2002 unique constraint errors
+    // on `mobile`, etc.).
+    id: _id,
+    userId: _userId,
+    mobile: _mobile,
+    status: _status,
+    createdAt: _createdAt,
+    updatedAt: _updatedAt,
     ...farmerData
   } = body;
 

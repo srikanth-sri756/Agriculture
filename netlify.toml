@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Cache Prisma client across builds for faster cold builds
+[build.environment]
+  NPM_FLAGS = "--legacy-peer-deps=false"
+  PRISMA_HIDE_UPDATE_MESSAGE = "true"

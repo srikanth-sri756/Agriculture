@@ -9,6 +9,7 @@ import { useLang } from "@/components/providers";
 import { t } from "@/lib/i18n";
 import Stepper from "@/components/stepper";
 import LanguageToggle from "@/components/language-toggle";
+import PageBackground from "@/components/page-background";
 import {
   personalInfoSchema,
   addressSchema,
@@ -23,7 +24,7 @@ import {
   consentSchema,
 } from "@/lib/schemas";
 import {
-  Sprout, ChevronLeft, ChevronRight, Save, Send, Plus, Trash2, LogOut, AlertCircle, Check, MapPin,
+  Sprout, ChevronLeft, ChevronRight, Save, Send, Plus, Trash2, LogOut, AlertCircle, Check, MapPin, Camera, X,
 } from "lucide-react";
 import { getStates, getDistricts, getMandals, getVillages } from "@/lib/area-data";
 
@@ -53,12 +54,12 @@ function getStepSchema(step: number): any {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getDefaultValues(step: number): any {
   switch (step) {
-    case 1: return { name: "", fatherName: "", mobile: "", whatsapp: "", aadhar: "", gender: "", dob: "", caste: "", education: "" };
+    case 1: return { name: "", fatherName: "", mobile: "", whatsapp: "", aadhar: "", gender: "", dob: "", caste: "", education: "", photoUrl: "" };
     case 2: return { state: "", district: "", mandal: "", village: "", hamlet: "", pincode: "" };
     case 3: return { lands: [{ surveyNo: "", state: "", district: "", mandal: "", village: "", acreage: "", landType: "", soilType: "", hasSoilReport: "no" }] };
-    case 4: return { crops: [{ season: "kharif", cropName: "", acreage: "", variety: "", yearlyYield: "" }] };
-    case 5: return { crops: [{ season: "rabi", cropName: "", acreage: "", variety: "", yearlyYield: "" }] };
-    case 6: return { crops: [{ season: "perennial", cropName: "", acreage: "", variety: "", yearlyYield: "" }] };
+    case 4: return { crops: [{ season: "kharif", cropName: "", acreage: "", variety: "", yearlyYield: "", photoUrl: "" }] };
+    case 5: return { crops: [{ season: "rabi", cropName: "", acreage: "", variety: "", yearlyYield: "", photoUrl: "" }] };
+    case 6: return { crops: [{ season: "perennial", cropName: "", acreage: "", variety: "", yearlyYield: "", photoUrl: "" }] };
     case 7: return { farmingExperienceYears: "", isOrganicFarmer: "", organicSinceYears: "" };
     case 8: return { weeds: [{ weedType: "", percentage: "" }] };
     case 9: return { waterSource: "", irrigationType: "" };
@@ -130,8 +131,9 @@ export default function WizardPage() {
 
   if (status === "loading" || !statusChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-amber-50 to-emerald-50">
-        <div className="text-green-800 text-lg">Loading...</div>
+      <div className="min-h-screen relative flex items-center justify-center">
+        <PageBackground />
+        <div className="text-green-800 text-lg animate-pulse">Loading...</div>
       </div>
     );
   }
@@ -221,12 +223,13 @@ export default function WizardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-amber-50 to-emerald-50">
+    <div className="min-h-screen relative">
+      <PageBackground />
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-green-100 shadow-sm">
+      <header className="sticky top-0 z-50 glass-header border-b border-green-100 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-green-800 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-green-800 rounded-xl flex items-center justify-center ring-pulse">
               <Sprout className="w-5 h-5 text-amber-300" />
             </div>
             <div>
@@ -254,7 +257,7 @@ export default function WizardPage() {
 
       {/* Form Area */}
       <div className="max-w-3xl mx-auto px-4 pb-8">
-        <div className="bg-white rounded-2xl shadow-lg border border-green-100 p-6">
+        <div key={step} className="glass-card rounded-2xl p-6 animate-fade-up">
           <h2 className="text-xl font-bold text-green-900 mb-1">{t(`step.${step}`, lang)}</h2>
           <p className="text-sm text-green-600 mb-6">{t("app.subtitle", lang)} — Step {step} of {TOTAL_STEPS}</p>
 
@@ -569,6 +572,11 @@ function StepForm({ step, lang, defaultValues, onSubmit, isLastStep, submitting 
       {/* Step 1: Personal Information */}
       {step === 1 && (
         <div className="space-y-4">
+          <PhotoUploadField
+            value={watch("photoUrl") || ""}
+            onChange={(v) => setValue("photoUrl", v, { shouldValidate: true })}
+            lang={lang}
+          />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className={labelCls}>{t("field.name", lang)} *</label><input {...register("name")} className={inputCls} />{errMsg("name")}</div>
             <div><label className={labelCls}>{t("field.fatherName", lang)} *</label><input {...register("fatherName")} className={inputCls} />{errMsg("fatherName")}</div>
@@ -802,11 +810,21 @@ function StepForm({ step, lang, defaultValues, onSubmit, isLastStep, submitting 
                   {chipSelect(`crops.${idx}.yearlyYield`, yieldOpts, 4)}
                   {errMsg(`crops.${idx}.yearlyYield`)}
                 </div>
+                <div className="pt-2 border-t border-amber-200">
+                  <PhotoUploadField
+                    value={watch(`crops.${idx}.photoUrl`) || ""}
+                    onChange={(v) => setValue(`crops.${idx}.photoUrl`, v, { shouldValidate: false })}
+                    lang={lang}
+                    label={lang === "en" ? "Crop Photo (optional)" : "పంట ఫోటో (ఐచ్ఛికం)"}
+                    shape="square"
+                    capture="environment"
+                  />
+                </div>
               </div>
             ))}
             <button
               type="button"
-              onClick={() => cropsArray.append({ season, cropName: "", acreage: "", variety: "", yearlyYield: "" })}
+              onClick={() => cropsArray.append({ season, cropName: "", acreage: "", variety: "", yearlyYield: "", photoUrl: "" })}
               className="flex items-center gap-1 px-4 py-2 rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200 transition text-sm font-medium"
             >
               <Plus className="w-4 h-4" /> {t("action.addCrop", lang)}
@@ -989,7 +1007,7 @@ function StepForm({ step, lang, defaultValues, onSubmit, isLastStep, submitting 
         <button
           type="submit"
           disabled={submitting}
-          className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-base transition disabled:opacity-50 ${
+          className={`shimmer-btn flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-base transition disabled:opacity-50 ${
             isLastStep
               ? "bg-emerald-700 text-white hover:bg-emerald-600"
               : "bg-green-800 text-white hover:bg-green-700"
@@ -1011,3 +1029,118 @@ function StepForm({ step, lang, defaultValues, onSubmit, isLastStep, submitting 
     </form>
   );
 }
+
+// Profile photo upload — converts to a resized base64 data URL
+function PhotoUploadField({
+  value,
+  onChange,
+  lang,
+  label,
+  shape = "circle",
+  capture = "user",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  lang: "en" | "te";
+  label?: string;
+  shape?: "circle" | "square";
+  capture?: "user" | "environment";
+}) {
+  const [error, setError] = useState("");
+  const fieldLabel = label ?? (lang === "en" ? "Profile Photo" : "ప్రొఫైల్ ఫోటో");
+  const altText = label ?? "photo";
+  const previewShape = shape === "circle" ? "rounded-full" : "rounded-xl";
+
+  const handleFile = (file: File) => {
+    setError("");
+    if (!file.type.startsWith("image/")) {
+      setError(lang === "en" ? "Please select an image file" : "దయచేసి ఇమేజ్ ఫైల్‌ని ఎంచుకోండి");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError(lang === "en" ? "Image must be smaller than 5MB" : "ఇమేజ్ 5MB కంటే తక్కువ ఉండాలి");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        // Resize to max 512px on the longer side, encode as JPEG quality 0.85
+        const max = 512;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          setError(lang === "en" ? "Could not process image" : "ఇమేజ్‌ని ప్రాసెస్ చేయలేకపోయాము");
+          return;
+        }
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        onChange(dataUrl);
+      };
+      img.onerror = () => setError(lang === "en" ? "Invalid image" : "చెల్లని ఇమేజ్");
+      img.src = reader.result as string;
+    };
+    reader.onerror = () => setError(lang === "en" ? "Could not read file" : "ఫైల్‌ని చదవలేకపోయాము");
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="flex items-center gap-4">
+      <div className={`relative w-24 h-24 ${previewShape} bg-green-50 border-2 border-dashed border-green-300 flex items-center justify-center overflow-hidden flex-shrink-0`}>
+        {value ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={value} alt={altText} className="w-full h-full object-cover" />
+        ) : (
+          <Camera className="w-8 h-8 text-green-400" />
+        )}
+      </div>
+      <div className="flex-1">
+        <label className="block text-sm font-semibold text-green-900 mb-1">
+          {fieldLabel}
+        </label>
+        <div className="flex items-center gap-2">
+          <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-green-300 bg-white text-green-700 text-sm font-medium cursor-pointer hover:bg-green-50 transition">
+            <Camera className="w-4 h-4" />
+            {value
+              ? (lang === "en" ? "Change" : "మార్చు")
+              : (lang === "en" ? "Upload" : "అప్‌లోడ్")}
+            <input
+              type="file"
+              accept="image/*"
+              capture={capture}
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleFile(f);
+                e.target.value = "";
+              }}
+            />
+          </label>
+          {value && (
+            <button
+              type="button"
+              onClick={() => onChange("")}
+              className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-red-200 text-red-600 text-sm hover:bg-red-50 transition"
+            >
+              <X className="w-4 h-4" />
+              {lang === "en" ? "Remove" : "తీసివేయి"}
+            </button>
+          )}
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          {lang === "en"
+            ? "JPG/PNG up to 5MB. Image will be resized automatically."
+            : "JPG/PNG, 5MB వరకు. ఇమేజ్ స్వయంచాలకంగా రీసైజ్ అవుతుంది."}
+        </p>
+        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      </div>
+    </div>
+  );
+}
+
+

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateOtp, sendSms } from "@/lib/otp";
 import { z } from "zod";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 const sendOtpSchema = z.object({
   mobile: z.string().regex(/^[6-9]\d{9}$/, "Valid 10-digit mobile required"),
@@ -9,6 +10,16 @@ const sendOtpSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 3 OTP requests per IP per 5 minutes
+    const ip = getClientIp(req);
+    const rl = rateLimit(`otp-send:${ip}`, 3, 5 * 60 * 1000);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: `Too many OTP requests. Try again in ${rl.resetInSeconds}s.` },
+        { status: 429, headers: { "Retry-After": String(rl.resetInSeconds) } }
+      );
+    }
+
     const body = await req.json();
     const parsed = sendOtpSchema.safeParse(body);
 

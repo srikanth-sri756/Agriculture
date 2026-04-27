@@ -11,6 +11,7 @@ export const personalInfoSchema = z.object({
   dob: z.string().min(1, "Date of birth is required"),
   caste: z.string().min(1, "Caste category is required"),
   education: z.string().min(1, "Education is required"),
+  photoUrl: z.string().optional().default(""),
 });
 
 // Step 2: Address
@@ -46,6 +47,7 @@ export const cropSchema = z.object({
     acreage: z.string().min(1, "Acreage is required"),
     variety: z.string().min(1, "Variety is required"),
     yearlyYield: z.string().min(1, "Yearly yield is required"),
+    photoUrl: z.string().optional().default(""),
   })).min(1, "At least one crop required"),
 });
 

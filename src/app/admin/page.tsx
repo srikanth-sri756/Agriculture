@@ -18,6 +18,7 @@ import {
 import { useLang } from "@/components/providers";
 import { t } from "@/lib/i18n";
 import LanguageToggle from "@/components/language-toggle";
+import PageBackground from "@/components/page-background";
 import * as XLSX from "xlsx";
 import {
   Sprout, LogOut, Search, Filter, Download, ChevronUp, ChevronDown,
@@ -41,12 +42,35 @@ interface FarmerRow {
   consentGiven: string;
   status: string;
   createdAt: string;
-  lands: { surveyNo: string; acreage: number; landType: string; soilType: string; district: string }[];
-  crops: { season: string; cropName: string; acreage: number }[];
+  lands: { surveyNo: string; acreage: string; landType: string; soilType: string; district: string }[];
+  crops: { season: string; cropName: string; acreage: string }[];
   economics: { pesticideCostPerYear: number; fertilizerCostPerYear: number; laborWagesPerYear: number; totalIncomePerYear: number } | null;
 }
 
 const columnHelper = createColumnHelper<FarmerRow>();
+
+// Acreage is stored as a range string ("<1", "1-3", "3-5", "5-10", "10+").
+// Convert to a numeric midpoint estimate so we can sum/sort it.
+function acreageToNumber(value: unknown): number {
+  if (typeof value === "number" && !Number.isNaN(value)) return value;
+  if (typeof value !== "string") return 0;
+  const v = value.trim();
+  if (!v) return 0;
+  if (v.startsWith("<")) {
+    const n = parseFloat(v.slice(1));
+    return Number.isFinite(n) ? n / 2 : 0;
+  }
+  if (v.endsWith("+")) {
+    const n = parseFloat(v.slice(0, -1));
+    return Number.isFinite(n) ? n * 1.2 : 0;
+  }
+  if (v.includes("-")) {
+    const [a, b] = v.split("-").map((s) => parseFloat(s));
+    if (Number.isFinite(a) && Number.isFinite(b)) return (a + b) / 2;
+  }
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : 0;
+}
 
 async function fetchFarmers(): Promise<FarmerRow[]> {
   const res = await fetch("/api/farmers");
@@ -112,7 +136,7 @@ export default function AdminDashboard() {
   // Stats
   const stats = useMemo(() => {
     const totalFarmers = farmers.length;
-    const totalAcres = farmers.reduce((sum, f) => sum + f.lands.reduce((s, l) => s + Number(l.acreage), 0), 0);
+    const totalAcres = farmers.reduce((sum, f) => sum + f.lands.reduce((s, l) => s + acreageToNumber(l.acreage), 0), 0);
     const districts = new Set(farmers.map(f => f.district).filter(Boolean));
     const organic = farmers.filter(f => f.isOrganicFarmer === "yes").length;
     return { totalFarmers, totalAcres: totalAcres.toFixed(1), districts: districts.size, organic };
@@ -131,10 +155,10 @@ export default function AdminDashboard() {
     columnHelper.accessor("district", { header: t("field.district", lang) }),
     columnHelper.accessor("mandal", { header: t("field.mandal", lang) }),
     columnHelper.accessor("village", { header: t("field.village", lang) }),
-    columnHelper.accessor((row) => row.lands.reduce((s, l) => s + Number(l.acreage), 0), {
+    columnHelper.accessor((row) => row.lands.reduce((s, l) => s + acreageToNumber(l.acreage), 0), {
       id: "totalAcreage",
       header: t("field.acreage", lang),
-      cell: (info) => <span>{Number(info.getValue()).toFixed(1)}</span>,
+      cell: (info) => <span>{info.getValue().toFixed(1)}</span>,
     }),
     columnHelper.accessor((row) => row.crops.map(c => c.cropName).join(", "), {
       id: "crops",
@@ -214,7 +238,7 @@ export default function AdminDashboard() {
       "Organic Farmer": f.isOrganicFarmer,
       "Water Source": f.waterSource,
       "Land Survey Nos": f.lands.map(l => l.surveyNo).join("; "),
-      "Total Acreage": f.lands.reduce((s, l) => s + Number(l.acreage), 0),
+      "Total Acreage": f.lands.reduce((s, l) => s + acreageToNumber(l.acreage), 0),
       "Land Types": f.lands.map(l => l.landType).join("; "),
       "Soil Types": f.lands.map(l => l.soilType).join("; "),
       "Kharif Crops": f.crops.filter(c => c.season === "kharif").map(c => c.cropName).join("; "),
@@ -244,19 +268,21 @@ export default function AdminDashboard() {
 
   if (status === "loading" || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-amber-50 to-emerald-50">
-        <div className="text-green-800 text-lg">Loading dashboard...</div>
+      <div className="min-h-screen relative flex items-center justify-center">
+        <PageBackground />
+        <div className="text-green-800 text-lg animate-pulse">Loading dashboard...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-amber-50 to-emerald-50">
+    <div className="min-h-screen relative">
+      <PageBackground />
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-green-100 shadow-sm">
+      <header className="sticky top-0 z-50 glass-header border-b border-green-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-green-800 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-green-800 rounded-xl flex items-center justify-center ring-pulse">
               <Sprout className="w-5 h-5 text-amber-300" />
             </div>
             <div>

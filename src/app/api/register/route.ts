@@ -3,9 +3,20 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { generateFarmerId } from "@/lib/utils";
 import { registerSchema } from "@/lib/schemas";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 5 registrations per IP per 10 minutes
+    const ip = getClientIp(req);
+    const rl = rateLimit(`register:${ip}`, 5, 10 * 60 * 1000);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: `Too many attempts. Try again in ${rl.resetInSeconds}s.` },
+        { status: 429, headers: { "Retry-After": String(rl.resetInSeconds) } }
+      );
+    }
+
     const body = await req.json();
     const parsed = registerSchema.safeParse(body);
 
@@ -21,7 +32,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Mobile number already registered" }, { status: 409 });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     // Generate unique farmer ID
     let farmerId = generateFarmerId();

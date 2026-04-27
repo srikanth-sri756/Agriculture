@@ -221,3 +221,131 @@ body {
   background: #166534;
   border-radius: 3px;
 }
+
+/* ───────────────────────────────────────────────────────────
+   Modernised UI: aurora background, glass cards, shimmer,
+   blob orbs, hover lift, staggered fade-up.
+   ─────────────────────────────────────────────────────────── */
+
+/* Soft animated aurora gradient (used as page background) */
+@keyframes auroraShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+.bg-aurora {
+  background: linear-gradient(
+    120deg,
+    #d1fae5 0%,
+    #fef3c7 25%,
+    #ecfccb 50%,
+    #fde68a 75%,
+    #d1fae5 100%
+  );
+  background-size: 300% 300%;
+  animation: auroraShift 18s ease infinite;
+}
+
+/* Floating colour blobs for hero/page backgrounds */
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(30px, -40px) scale(1.08); }
+  66%      { transform: translate(-25px, 25px) scale(0.95); }
+}
+.animate-blob {
+  animation: blob 14s ease-in-out infinite;
+}
+.animate-blob-delay-2 { animation: blob 14s ease-in-out 2s infinite; }
+.animate-blob-delay-4 { animation: blob 14s ease-in-out 4s infinite; }
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 8px 32px rgba(22, 101, 52, 0.08);
+}
+.glass-header {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+
+/* Hover lift utility */
+.hover-lift {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.35s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px -12px rgba(22, 101, 52, 0.25);
+}
+
+/* Shimmer sweep across element (used on primary CTAs) */
+@keyframes shimmer {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+.shimmer-btn {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-btn::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 40%;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 80%
+  );
+  transform: translateX(-120%);
+  animation: shimmer 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Soft pulsing ring for status / avatar */
+@keyframes ringPulse {
+  0%   { box-shadow: 0 0 0 0   rgba(22, 101, 52, 0.45); }
+  70%  { box-shadow: 0 0 0 14px rgba(22, 101, 52, 0); }
+  100% { box-shadow: 0 0 0 0   rgba(22, 101, 52, 0); }
+}
+.ring-pulse {
+  animation: ringPulse 2.4s ease-out infinite;
+}
+
+/* Staggered fade-up — pair with style={{animationDelay: ...}} */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Pop-in scale (toast / badge) */
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.85); }
+  60%  { opacity: 1; transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+.animate-pop-in { animation: popIn 0.45s ease-out both; }
+
+/* Reduce motion for users that prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .animate-blob,
+  .animate-blob-delay-2,
+  .animate-blob-delay-4,
+  .animate-float,
+  .animate-float-slow,
+  .animate-float-delay,
+  .ring-pulse,
+  .shimmer-btn::after,
+  .bg-aurora {
+    animation: none !important;
+  }
+}
