@@ -46,6 +46,9 @@ model Farmer {
   farmingExperienceYears String @default("")  // range: "0-5", "5-10", etc.
   isOrganicFarmer        String @default("no") // "yes" | "no"
   organicSinceYears      String @default("")  // range: "0", "0-2", etc.
+  // Practice type chosen at the start of the wizard
+  // "natural" | "chemical" | "terrace" | "both" | "others"
+  farmingType            String @default("")
 
   // Section 8: Weeds (JSON string)
   weedsData     String   @default("{}") // JSON: { weedType: percentage }

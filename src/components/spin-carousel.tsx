@@ -19,7 +19,6 @@ import {
   Stethoscope,
   TestTube,
   FlaskConical,
-  Worm,
   TreePine,
   Mountain,
 } from "lucide-react";
@@ -148,12 +147,12 @@ const nutrientSlides: Slide[] = [
     icon: TreePine,
   },
   {
-    title: "Vermicompost",
-    tagline: "Worms write the soil's story",
-    desc: "Earthworm-cast compost delivers slow-release NPK plus enzymes and microbes that supercharge plant uptake.",
+    title: "Green Manure",
+    tagline: "Cover crops, living roots",
+    desc: "Sunhemp, dhaincha, and cowpea grown between seasons fix nitrogen, smother weeds, and feed the soil when ploughed back.",
     gradient: "from-emerald-600 via-teal-700 to-cyan-700",
     accent: "text-emerald-100",
-    icon: Worm,
+    icon: Leaf,
   },
   {
     title: "Bio-fertilizers",

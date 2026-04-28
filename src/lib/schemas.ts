@@ -40,11 +40,15 @@ export const landSchema = z.object({
   })).min(1, "At least one land parcel required"),
 });
 
-// Step 4-6: Crops (per season)
+// Step 4-6: Crops (per season). cropName accepts a string OR an array of strings
+// so a single card can represent multiple crops sharing the same details.
 export const cropSchema = z.object({
   crops: z.array(z.object({
     season: z.string(),
-    cropName: z.string().min(1, "Crop name required"),
+    cropName: z.union([
+      z.array(z.string()).min(1, "Select at least one crop"),
+      z.string().min(1, "Crop name required"),
+    ]),
     acreage: z.string().min(1, "Acreage is required"),
     variety: z.string().min(1, "Variety is required"),
     yearlyYield: z.string().min(1, "Yearly yield is required"),
@@ -59,9 +63,13 @@ export const experienceSchema = z.object({
   organicSinceYears: z.string().min(1, "Years required"),
 });
 
-// Step 8: Weeds
+// Step 8: Weeds. weedType accepts a string OR an array of strings so a single
+// entry can represent multiple weed types sharing the same coverage.
 export const weedEntrySchema = z.object({
-  weedType: z.string().min(1, "Weed type required"),
+  weedType: z.union([
+    z.array(z.string()).min(1, "Select at least one weed type"),
+    z.string().min(1, "Weed type required"),
+  ]),
   percentage: z.string().min(1, "Coverage required"),
 });
 

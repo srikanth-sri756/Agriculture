@@ -24,12 +24,15 @@ import {
   consentSchema,
 } from "@/lib/schemas";
 import {
-  Sprout, ChevronLeft, ChevronRight, Save, Send, Plus, Trash2, LogOut, AlertCircle, Check, MapPin, Camera, X, CheckCircle2, PartyPopper,
+  Sprout, ChevronLeft, ChevronRight, Save, Send, Plus, Trash2, LogOut, AlertCircle, Check, MapPin, Camera, X, CheckCircle2, PartyPopper, SkipForward, HelpCircle, Phone, MessageCircle, Mail,
 } from "lucide-react";
 import { getStates, getDistricts, getMandals, getVillages } from "@/lib/area-data";
 
 const TOTAL_STEPS = 13;
 const STORAGE_KEY = "ocf-spin-wizard-data";
+const FARMING_TYPE_KEY = "ocf-spin-farming-type";
+
+type FarmingType = "natural" | "chemical" | "terrace" | "both" | "others";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getStepSchema(step: number): any {
@@ -57,11 +60,11 @@ function getDefaultValues(step: number): any {
     case 1: return { name: "", fatherName: "", mobile: "", whatsapp: "", aadhar: "", gender: "", dob: "", caste: "", education: "", photoUrl: "" };
     case 2: return { state: "", district: "", mandal: "", village: "", hamlet: "", pincode: "" };
     case 3: return { lands: [{ surveyNo: "", state: "", district: "", mandal: "", village: "", acreage: "", landType: "", soilType: "", hasSoilReport: "no", photoUrl: "" }] };
-    case 4: return { crops: [{ season: "kharif", cropName: "", acreage: "", variety: "", yearlyYield: "", photoUrl: "" }] };
-    case 5: return { crops: [{ season: "rabi", cropName: "", acreage: "", variety: "", yearlyYield: "", photoUrl: "" }] };
-    case 6: return { crops: [{ season: "perennial", cropName: "", acreage: "", variety: "", yearlyYield: "", photoUrl: "" }] };
+    case 4: return { crops: [{ season: "kharif", cropName: [], acreage: "", variety: "", yearlyYield: "", photoUrl: "" }] };
+    case 5: return { crops: [{ season: "rabi", cropName: [], acreage: "", variety: "", yearlyYield: "", photoUrl: "" }] };
+    case 6: return { crops: [{ season: "perennial", cropName: [], acreage: "", variety: "", yearlyYield: "", photoUrl: "" }] };
     case 7: return { farmingExperienceYears: "", isOrganicFarmer: "", organicSinceYears: "" };
-    case 8: return { weeds: [{ weedType: "", percentage: "" }] };
+    case 8: return { weeds: [{ weedType: [], percentage: "" }] };
     case 9: return { waterSource: "", irrigationType: "" };
     case 10: return { ownsEquipment: "", equipmentList: [], nearestEquipmentKm: "" };
     case 11: return { pesticideCostPerYear: "", fertilizerCostPerYear: "", seedCostPerYear: "", laborWagesPerYear: "", totalIncomePerYear: "", marketDistance: "" };
@@ -82,6 +85,14 @@ export default function WizardPage() {
   const [message, setMessage] = useState("");
   const [statusChecked, setStatusChecked] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showContact, setShowContact] = useState(false);
+  const [farmingType, setFarmingType] = useState<FarmingType | "">("");
+  const [showFarmingType, setShowFarmingType] = useState(false);
+
+  // Team contact info — update these to your actual support numbers
+  const TEAM_PHONE = "+919000000000";
+  const TEAM_WHATSAPP = "919000000000";
+  const TEAM_EMAIL = "info@ocf-spin.org";
 
   // Check farmer status — redirect to dashboard if not editable
   useEffect(() => {
@@ -115,8 +126,22 @@ export default function WizardPage() {
           setCompletedSteps(completed);
         } catch { /* ignore */ }
       }
+      const ft = localStorage.getItem(FARMING_TYPE_KEY) as FarmingType | null;
+      if (ft && ["natural", "chemical", "terrace", "both", "others"].includes(ft)) {
+        setFarmingType(ft);
+      } else {
+        setShowFarmingType(true);
+      }
     }
   }, []);
+
+  const chooseFarmingType = (ft: FarmingType) => {
+    setFarmingType(ft);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(FARMING_TYPE_KEY, ft);
+    }
+    setShowFarmingType(false);
+  };
 
   // Save to localStorage whenever allData changes
   const saveToStorage = useCallback((data: Record<string, unknown>) => {
@@ -157,6 +182,16 @@ export default function WizardPage() {
     }
   };
 
+  const handleSkip = () => {
+    // Step 13 (consent) is mandatory and cannot be skipped
+    if (step === TOTAL_STEPS) return;
+    const updated = { ...allData, [`step${step}`]: { __skipped: true } };
+    setAllData(updated);
+    saveToStorage(updated);
+    setCompletedSteps(prev => new Set([...prev, step]));
+    setStep(step + 1);
+  };
+
   const handleFinalSubmit = async (data: Record<string, unknown>) => {
     setSubmitting(true);
     setMessage("");
@@ -164,19 +199,55 @@ export default function WizardPage() {
     try {
       // Flatten all step data into the API shape
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const s = (n: number) => (data[`step${n}`] || {}) as any;
+      const s = (n: number) => {
+        const v = (data[`step${n}`] || {}) as any;
+        // Skipped steps are treated as empty so the API only sees what the
+        // farmer actually filled in.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return v.__skipped ? ({} as any) : v;
+      };
+
+      // Each crop card may carry an array of crop names (multi-select). Expand
+      // it into one Crop row per selected name, sharing the other fields.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const expandCrops = (arr: any[]) =>
+        (arr || []).flatMap((c) => {
+          const names = Array.isArray(c.cropName)
+            ? c.cropName
+            : c.cropName
+              ? [c.cropName]
+              : [];
+          if (names.length === 0) return [];
+          return names.map((name: string) => ({ ...c, cropName: name }));
+        });
+
+      // Weed entries may carry an array of weed types — expand similarly so
+      // each saved row represents a single weed type.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const expandWeeds = (arr: any[]) =>
+        (arr || []).flatMap((w) => {
+          const types = Array.isArray(w.weedType)
+            ? w.weedType
+            : w.weedType
+              ? [w.weedType]
+              : [];
+          if (types.length === 0) return [];
+          return types.map((wt: string) => ({ ...w, weedType: wt }));
+        });
 
       const payload = {
         // Personal info (step 1)
         ...s(1),
         // Address (step 2)
         ...s(2),
+        // Farming practice type chosen at start
+        farmingType,
         // Farming experience (step 7)
         farmingExperienceYears: s(7).farmingExperienceYears,
         isOrganicFarmer: s(7).isOrganicFarmer,
         organicSinceYears: s(7).organicSinceYears,
         // Weeds (step 8)
-        weedsData: s(8).weeds || [],
+        weedsData: expandWeeds(s(8).weeds || []),
         // Water (step 9)
         waterSource: s(9).waterSource,
         irrigationType: s(9).irrigationType,
@@ -197,9 +268,9 @@ export default function WizardPage() {
         // Relations
         lands: s(3).lands || [],
         crops: [
-          ...(s(4).crops || []),
-          ...(s(5).crops || []),
-          ...(s(6).crops || []),
+          ...expandCrops(s(4).crops),
+          ...expandCrops(s(5).crops),
+          ...expandCrops(s(6).crops),
         ],
         economics: s(11),
       };
@@ -246,6 +317,15 @@ export default function WizardPage() {
           <div className="flex items-center gap-2">
             <LanguageToggle />
             <button
+              type="button"
+              onClick={() => setShowContact(true)}
+              className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-lg text-emerald-700 hover:bg-emerald-50 text-sm"
+              title={t("action.contactTeam", lang)}
+            >
+              <HelpCircle className="w-4 h-4" />
+              {t("action.contactTeam", lang)}
+            </button>
+            <button
               onClick={async () => {
                 await signOut({ redirect: false });
                 window.location.href = "/login";
@@ -268,7 +348,20 @@ export default function WizardPage() {
       <div className="max-w-3xl mx-auto px-4 pb-8">
         <div key={step} className="glass-card rounded-2xl p-6 animate-fade-up">
           <h2 className="text-xl font-bold text-green-900 mb-1">{t(`step.${step}`, lang)}</h2>
-          <p className="text-sm text-green-600 mb-6">{t("app.subtitle", lang)} — Step {step} of {TOTAL_STEPS}</p>
+          <p className="text-sm text-green-600 mb-3">{t("app.subtitle", lang)} — Step {step} of {TOTAL_STEPS}</p>
+          {farmingType && (
+            <div className="mb-5 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs">
+              <span className="text-emerald-700 font-semibold">{t("farmingType.field", lang)}:</span>
+              <span className="text-green-900 font-bold">{t(`farmingType.${farmingType}`, lang)}</span>
+              <button
+                type="button"
+                onClick={() => setShowFarmingType(true)}
+                className="ml-1 text-emerald-600 hover:text-emerald-800 underline underline-offset-2"
+              >
+                {t("farmingType.change", lang)}
+              </button>
+            </div>
+          )}
 
           {message && (
             <div className="mb-4 p-3 bg-emerald-50 text-emerald-700 rounded-lg text-sm border border-emerald-200 flex items-center gap-2">
@@ -280,14 +373,19 @@ export default function WizardPage() {
           <StepForm
             step={step}
             lang={lang}
-            defaultValues={allData[`step${step}`] || getDefaultValues(step)}
+            farmingType={farmingType}
+            defaultValues={(() => {
+              const saved = allData[`step${step}`] as { __skipped?: boolean } | undefined;
+              if (!saved || saved.__skipped) return getDefaultValues(step);
+              return saved;
+            })()}
             onSubmit={handleStepSubmit}
             isLastStep={step === TOTAL_STEPS}
             submitting={submitting}
           />
 
           {/* Navigation */}
-          <div className="flex justify-between mt-6 pt-4 border-t border-green-100">
+          <div className="flex flex-wrap justify-between gap-2 mt-6 pt-4 border-t border-green-100">
             <button
               onClick={() => setStep(Math.max(1, step - 1))}
               disabled={step === 1}
@@ -296,21 +394,206 @@ export default function WizardPage() {
               <ChevronLeft className="w-4 h-4" />
               {t("action.previous", lang)}
             </button>
+            <div className="flex flex-wrap items-center gap-2">
+              {step !== TOTAL_STEPS && (
+                <button
+                  type="button"
+                  onClick={handleSkip}
+                  className="flex items-center gap-1 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+                  title={lang === "en" ? "Skip this step (you can come back later)" : "ఈ దశను దాటవేయండి (తర్వాత తిరిగి రావచ్చు)"}
+                >
+                  <SkipForward className="w-4 h-4" />
+                  {t("action.skip", lang)}
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  const updated = { ...allData };
+                  saveToStorage(updated);
+                  setMessage(t("msg.saved", lang));
+                  setTimeout(() => setMessage(""), 2000);
+                }}
+                className="flex items-center gap-1 px-4 py-2 rounded-lg text-amber-700 hover:bg-amber-50 transition"
+              >
+                <Save className="w-4 h-4" />
+                {t("action.save", lang)}
+              </button>
+            </div>
+          </div>
+
+          {/* Need help / Contact Team prompt */}
+          <div className="mt-4 p-3 rounded-xl bg-gradient-to-r from-emerald-50 to-amber-50 border border-emerald-100 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2 text-sm text-green-800">
+              <HelpCircle className="w-4 h-4 text-emerald-600" />
+              {t("action.needHelp", lang)}
+            </div>
             <button
-              onClick={() => {
-                const updated = { ...allData };
-                saveToStorage(updated);
-                setMessage(t("msg.saved", lang));
-                setTimeout(() => setMessage(""), 2000);
-              }}
-              className="flex items-center gap-1 px-4 py-2 rounded-lg text-amber-700 hover:bg-amber-50 transition"
+              type="button"
+              onClick={() => setShowContact(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition text-sm font-semibold shadow-sm"
             >
-              <Save className="w-4 h-4" />
-              {t("action.save", lang)}
+              <Phone className="w-3.5 h-3.5" />
+              {t("action.contactTeam", lang)}
             </button>
           </div>
         </div>
       </div>
+
+      {showFarmingType && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+          onClick={() => { if (farmingType) setShowFarmingType(false); }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden animate-pop-in"
+          >
+            <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-emerald-500 via-green-500 to-amber-400" />
+            {farmingType && (
+              <button
+                type="button"
+                onClick={() => setShowFarmingType(false)}
+                aria-label="Close"
+                className="absolute top-3 right-3 p-1.5 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            <div className="p-7">
+              <div className="text-center mb-5">
+                <div className="mx-auto mb-3 w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <Sprout className="w-9 h-9 text-emerald-600" />
+                </div>
+                <h2 className="text-xl font-bold text-green-900">
+                  {t("farmingType.title", lang)}
+                </h2>
+                <p className="mt-1 text-sm text-gray-600">{t("farmingType.subtitle", lang)}</p>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-2.5">
+                {([
+                  { v: "natural", titleKey: "farmingType.natural", descKey: "farmingType.naturalDesc" },
+                  { v: "chemical", titleKey: "farmingType.chemical", descKey: "farmingType.chemicalDesc" },
+                  { v: "terrace", titleKey: "farmingType.terrace", descKey: "farmingType.terraceDesc" },
+                  { v: "both", titleKey: "farmingType.both", descKey: "farmingType.bothDesc" },
+                  { v: "others", titleKey: "farmingType.others", descKey: "farmingType.othersDesc" },
+                ] as const).map((opt) => {
+                  const selected = farmingType === opt.v;
+                  return (
+                    <button
+                      key={opt.v}
+                      type="button"
+                      onClick={() => chooseFarmingType(opt.v)}
+                      className={`text-left p-3 rounded-xl border-2 transition-all active:scale-[0.98] ${
+                        selected
+                          ? "border-emerald-600 bg-emerald-50 shadow-sm"
+                          : "border-green-200 bg-white hover:border-emerald-400 hover:bg-emerald-50/50"
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        {selected && <Check className="w-4 h-4 mt-0.5 text-emerald-600 flex-shrink-0" />}
+                        <div>
+                          <div className="text-sm font-bold text-green-900 leading-tight">{t(opt.titleKey, lang)}</div>
+                          <div className="text-xs text-green-700/70 mt-0.5">{t(opt.descKey, lang)}</div>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showContact && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
+          onClick={() => setShowContact(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden animate-pop-in"
+          >
+            <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-emerald-500 via-green-500 to-amber-400" />
+            <button
+              type="button"
+              onClick={() => setShowContact(false)}
+              aria-label="Close"
+              className="absolute top-3 right-3 p-1.5 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="p-7">
+              <div className="text-center mb-5">
+                <div className="mx-auto mb-3 w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <HelpCircle className="w-9 h-9 text-emerald-600" />
+                </div>
+                <h2 className="text-xl font-bold text-green-900">
+                  {t("action.contactTeam", lang)}
+                </h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  {lang === "en"
+                    ? "Our team can fill the form for you. Reach out anytime."
+                    : "మా బృందం మీ కోసం ఫారం నింపగలదు. ఎప్పుడైనా సంప్రదించండి."}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <a
+                  href={`tel:${TEAM_PHONE}`}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 transition"
+                >
+                  <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center">
+                    <Phone className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-emerald-700 font-semibold">{t("action.callUs", lang)}</div>
+                    <div className="text-sm font-bold text-green-900">{TEAM_PHONE}</div>
+                  </div>
+                </a>
+                <a
+                  href={`https://wa.me/${TEAM_WHATSAPP}?text=${encodeURIComponent(
+                    lang === "en"
+                      ? `Hello, I need help filling the OCF-SPIN form. My Farmer ID is ${farmerId}.`
+                      : `నమస్కారం, OCF-SPIN ఫారం నింపడంలో సహాయం కావాలి. నా రైతు ID: ${farmerId}.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 rounded-xl border border-green-200 bg-green-50 hover:bg-green-100 transition"
+                >
+                  <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
+                    <MessageCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-green-700 font-semibold">{t("action.whatsappUs", lang)}</div>
+                    <div className="text-sm font-bold text-green-900">+{TEAM_WHATSAPP}</div>
+                  </div>
+                </a>
+                <a
+                  href={`mailto:${TEAM_EMAIL}?subject=${encodeURIComponent("OCF-SPIN Form Help")}`}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 transition"
+                >
+                  <div className="w-10 h-10 rounded-full bg-amber-600 flex items-center justify-center">
+                    <Mail className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-amber-700 font-semibold">{t("action.emailUs", lang)}</div>
+                    <div className="text-sm font-bold text-green-900">{TEAM_EMAIL}</div>
+                  </div>
+                </a>
+              </div>
+              <p className="mt-4 text-xs text-center text-gray-500">
+                {lang === "en"
+                  ? "Share your Farmer ID with our team so we can locate your account."
+                  : "మీ ఖాతాను గుర్తించడానికి మీ రైతు IDను మా బృందానికి పంచుకోండి."}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showSuccess && (
         <div
@@ -366,9 +649,10 @@ export default function WizardPage() {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function StepForm({ step, lang, defaultValues, onSubmit, isLastStep, submitting }: {
+function StepForm({ step, lang, farmingType, defaultValues, onSubmit, isLastStep, submitting }: {
   step: number;
   lang: "en" | "te";
+  farmingType: FarmingType | "";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   defaultValues: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -509,7 +793,7 @@ function StepForm({ step, lang, defaultValues, onSubmit, isLastStep, submitting 
     { value: "5-10", label: t("acreage.large", lang) },
     { value: "10+", label: t("acreage.veryLarge", lang) },
   ];
-  const cropOpts = [
+  const fieldCropOpts = [
     { value: "rice", label: t("crop.rice", lang) },
     { value: "cotton", label: t("crop.cotton", lang) },
     { value: "groundnut", label: t("crop.groundnut", lang) },
@@ -533,8 +817,33 @@ function StepForm({ step, lang, defaultValues, onSubmit, isLastStep, submitting 
     { value: "cashew", label: t("crop.cashew", lang) },
     { value: "oilpalm", label: t("crop.oilpalm", lang) },
     { value: "vegetables", label: t("crop.vegetables", lang) },
-    { value: "other", label: t("crop.other", lang) },
   ];
+  const terraceCropOpts = [
+    { value: "tomato", label: t("crop.tomato", lang) },
+    { value: "brinjal", label: t("crop.brinjal", lang) },
+    { value: "okra", label: t("crop.okra", lang) },
+    { value: "spinach", label: t("crop.spinach", lang) },
+    { value: "coriander", label: t("crop.coriander", lang) },
+    { value: "mint", label: t("crop.mint", lang) },
+    { value: "curryleaves", label: t("crop.curryleaves", lang) },
+    { value: "gourd", label: t("crop.gourd", lang) },
+    { value: "microgreens", label: t("crop.microgreens", lang) },
+    { value: "flowers", label: t("crop.flowers", lang) },
+    { value: "herbs", label: t("crop.herbs", lang) },
+    { value: "lemon", label: t("crop.lemon", lang) },
+    { value: "papaya", label: t("crop.papaya", lang) },
+    { value: "guava", label: t("crop.guava", lang) },
+  ];
+  // Choose crop list based on farming type:
+  //  - terrace: only terrace/kitchen-garden crops
+  //  - both / others / (empty): show everything
+  //  - natural / chemical: traditional field crops
+  const cropOpts = (() => {
+    if (farmingType === "terrace") return [...terraceCropOpts, { value: "other", label: t("crop.other", lang) }];
+    if (farmingType === "both" || farmingType === "others" || farmingType === "")
+      return [...fieldCropOpts, ...terraceCropOpts, { value: "other", label: t("crop.other", lang) }];
+    return [...fieldCropOpts, { value: "other", label: t("crop.other", lang) }];
+  })();
   const varietyOpts = [
     { value: "local", label: t("variety.local", lang) },
     { value: "hybrid", label: t("variety.hybrid", lang) },
@@ -568,14 +877,16 @@ function StepForm({ step, lang, defaultValues, onSubmit, isLastStep, submitting 
   ];
   const waterSourceOpts = [
     { value: "borewell", label: lang === "en" ? "🔧 Borewell" : "🔧 బోరుబావి" },
+    { value: "well", label: lang === "en" ? "🪣 Well / Pond" : "🪣 బావి / చెరువు" },
     { value: "canal", label: lang === "en" ? "🏞️ Canal" : "🏞️ కాలువ" },
-    { value: "tank", label: lang === "en" ? "💧 Tank" : "💧 చెరువు" },
+    { value: "tank", label: lang === "en" ? "💧 Tank" : "💧 ట్యాంక్" },
     { value: "rain", label: lang === "en" ? "🌧️ Rain-fed" : "🌧️ వర్షాధారం" },
     { value: "river", label: lang === "en" ? "🌊 River" : "🌊 నది" },
   ];
   const irrigationOpts = [
     { value: "drip", label: lang === "en" ? "💧 Drip" : "💧 బిందు" },
     { value: "sprinkler", label: lang === "en" ? "🌧️ Sprinkler" : "🌧️ తుంపర" },
+    { value: "rainhose", label: lang === "en" ? "🚿 Rain Hose" : "🚿 రెయిన్ హోస్" },
     { value: "flood", label: lang === "en" ? "🌊 Flood" : "🌊 ముంపు" },
     { value: "furrow", label: lang === "en" ? "〰️ Furrow" : "〰️ కాలువ" },
   ];
@@ -860,8 +1171,8 @@ function StepForm({ step, lang, defaultValues, onSubmit, isLastStep, submitting 
                 </div>
                 <input type="hidden" {...register(`crops.${idx}.season`)} value={season} />
                 <div>
-                  <label className={labelCls}>{t("field.cropName", lang)} *</label>
-                  {chipSelect(`crops.${idx}.cropName`, cropOpts, 4)}
+                  <label className={labelCls}>{t("field.cropName", lang)} * <span className="text-xs font-normal text-green-600">({lang === "en" ? "select one or more" : "ఒకటి లేదా అంతకంటే ఎక్కువ ఎంచుకోండి"})</span></label>
+                  {chipMulti(`crops.${idx}.cropName`, cropOpts, 4)}
                   {errMsg(`crops.${idx}.cropName`)}
                 </div>
                 <div>
@@ -893,7 +1204,7 @@ function StepForm({ step, lang, defaultValues, onSubmit, isLastStep, submitting 
             ))}
             <button
               type="button"
-              onClick={() => cropsArray.append({ season, cropName: "", acreage: "", variety: "", yearlyYield: "", photoUrl: "" })}
+              onClick={() => cropsArray.append({ season, cropName: [], acreage: "", variety: "", yearlyYield: "", photoUrl: "" })}
               className="flex items-center gap-1 px-4 py-2 rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200 transition text-sm font-medium"
             >
               <Plus className="w-4 h-4" /> {t("action.addCrop", lang)}
@@ -941,8 +1252,8 @@ function StepForm({ step, lang, defaultValues, onSubmit, isLastStep, submitting 
                 )}
               </div>
               <div>
-                <label className={labelCls}>{t("field.weedType", lang)} *</label>
-                {chipSelect(`weeds.${idx}.weedType`, weedTypeOpts, 3)}
+                <label className={labelCls}>{t("field.weedType", lang)} * <span className="text-xs font-normal text-green-600">({lang === "en" ? "select one or more" : "ఒకటి లేదా అంతకంటే ఎక్కువ ఎంచుకోండి"})</span></label>
+                {chipMulti(`weeds.${idx}.weedType`, weedTypeOpts, 3)}
                 {errMsg(`weeds.${idx}.weedType`)}
               </div>
               <div>
@@ -954,7 +1265,7 @@ function StepForm({ step, lang, defaultValues, onSubmit, isLastStep, submitting 
           ))}
           <button
             type="button"
-            onClick={() => weedsArray.append({ weedType: "", percentage: "" })}
+            onClick={() => weedsArray.append({ weedType: [], percentage: "" })}
             className="flex items-center gap-1 px-4 py-2 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition text-sm font-medium"
           >
             <Plus className="w-4 h-4" /> {t("action.addWeed", lang)}
