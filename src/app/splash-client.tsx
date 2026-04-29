@@ -250,6 +250,15 @@ export default function SplashClient() {
   const [phase, setPhase] = useState<Phase>("black");
   const [items, setItems] = useState<Item[]>([]);
   const [ganapatiBroken, setGanapatiBroken] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
   const [showOptions, setShowOptions] = useState(false);
   const [selectedFt, setSelectedFt] = useState<FarmingType | "">("");
   const router = useRouter();
@@ -542,9 +551,9 @@ export default function SplashClient() {
           marginTop: "-50vmin",
           opacity: showItems ? 1 : 0,
           transform: itemsFormed
-            ? "translate(0, 32%) rotate(40deg) scale(0.7)"
+            ? `translate(0, ${isMobile ? 44 : 32}%) rotate(40deg) scale(0.7)`
             : phase === "expand" || showFlag
-            ? "translate(0, 32%) rotate(40deg) scale(0.7, 0)"
+            ? `translate(0, ${isMobile ? 44 : 32}%) rotate(40deg) scale(0.7, 0)`
             : "rotate(0deg) scale(1)",
           transformOrigin: "50% 50%",
           transition: `opacity 1.4s ${ease}, transform 1.6s ${ease}`,
