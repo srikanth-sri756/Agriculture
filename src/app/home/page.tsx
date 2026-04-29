@@ -198,7 +198,7 @@ export default async function HomePage() {
                 <p className="text-amber-300 text-sm font-semibold mt-1">Organic Carbon Farming Visionary</p>
                 <div className="mt-4 space-y-3 text-sm text-green-200/60 leading-relaxed text-left">
                   <p>
-                    Passionate about transforming Indian agriculture through organic carbon farming — 
+                    Passionate about transforming Indian agriculture through organic carbon farming, 
                     bringing sustainable, profitable solutions to every farmer.
                   </p>
                   <p>
@@ -277,7 +277,7 @@ export default async function HomePage() {
             <div className="relative rounded-3xl overflow-hidden shadow-2xl ring-1 ring-green-200/50">
               <Image
                 src="/images/banner.jpeg"
-                alt="OCF.SPIN — Organic Carbon Farming: Seed, soil layers and roots"
+                alt="OCF.SPIN: Organic Carbon Farming. Seed, soil layers and roots"
                 width={1200}
                 height={500}
                 className="w-full h-auto object-cover"
@@ -311,7 +311,7 @@ export default async function HomePage() {
                 <span className="text-teal-600">N</span>utrients
               </h2>
               <p className="text-lg text-green-700/70 max-w-2xl mx-auto">
-                The four pillars of <strong>SPIN</strong> — a comprehensive approach to organic carbon farming
+                The four pillars of <strong>SPIN</strong>: a comprehensive approach to organic carbon farming
               </p>
             </div>
           </ScrollReveal>
@@ -338,12 +338,12 @@ export default async function HomePage() {
                     <strong className="text-green-900">Organic Carbon Farming</strong> is a revolutionary 
                     approach that focuses on increasing the carbon content in soil through natural, organic 
                     methods. By building soil organic carbon, farmers can dramatically improve soil health, 
-                    water retention, and crop productivity — all while fighting climate change.
+                    water retention, and crop productivity, all while fighting climate change.
                   </p>
                   <p>
                     Unlike conventional farming that depletes nutrients, carbon farming <strong className="text-green-900">
                     regenerates the soil ecosystem</strong>. Through practices like composting, cover cropping, 
-                    mulching, and bio-inputs, carbon is sequestered from the atmosphere back into the earth — 
+                    mulching, and bio-inputs, carbon is sequestered from the atmosphere back into the earth, 
                     making every farm a carbon sink.
                   </p>
                   <p>
@@ -451,8 +451,8 @@ export default async function HomePage() {
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-2 border-white/30 shadow-lg">
                   <Image src="/images/ocf-logo.png" alt="OCF Logo" width={80} height={80} className="w-full h-full object-cover" />
                 </div>
-                <div className="text-white text-3xl sm:text-4xl font-extrabold tracking-tight drop-shadow-lg">
-                  OCF-SPIN
+                <div className="text-white text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight drop-shadow-lg leading-tight max-w-xl">
+                  New era in natural <span className="text-amber-300">(organic)</span> farming
                 </div>
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-2 border-white/30 shadow-lg">
                   <Image src="/images/founder.jpeg" alt="Founder" width={80} height={80} className="w-full h-full object-cover" />
@@ -660,7 +660,7 @@ export default async function HomePage() {
                 ].map(item => (
                   <p key={item.letter} className="flex items-center gap-2">
                     <span className={`${item.color} font-extrabold text-lg w-6`}>{item.letter}</span>
-                    <span className="text-green-500/50">—</span>
+                    <span className="text-green-500/50">:</span>
                     {item.desc}
                   </p>
                 ))}
@@ -669,7 +669,7 @@ export default async function HomePage() {
           </div>
 
           <div className="border-t border-green-800/30 mt-14 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-green-500/50">
-            <p>&copy; {new Date().getFullYear()} OCF-SPIN — Organic Carbon Farming. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} OCF-SPIN. Organic Carbon Farming. All rights reserved.</p>
             <p className="font-semibold text-green-400/60">Bhavishyath Bharat</p>
           </div>
         </div>

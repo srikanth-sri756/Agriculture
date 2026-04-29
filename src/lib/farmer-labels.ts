@@ -1,4 +1,4 @@
-// Maps for converting stored enum-like values into human readable labels.
+﻿// Maps for converting stored enum-like values into human readable labels.
 // Used by the admin Farmer Detail modal (en/te) and the English PDF export.
 
 import { t, type Language } from "./i18n";
@@ -8,7 +8,7 @@ type Map = Record<string, { en: string; te: string }>;
 const yesNo: Map = {
   yes: { en: "Yes", te: "అవును" },
   no: { en: "No", te: "లేదు" },
-  "": { en: "—", te: "—" },
+  "": { en: "-", te: "-" },
 };
 
 const gender: Map = {
@@ -85,13 +85,13 @@ const dicts: Record<string, Map> = {
 
 /** Look up a known enum value in any dictionary. Falls back to the raw value. */
 export function labelFor(dict: keyof typeof dicts, value: string, lang: Language): string {
-  if (!value) return "—";
+  if (!value) return "-";
   return dicts[dict]?.[value]?.[lang] ?? value;
 }
 
 /** Translate a comma/semicolon separated list of enum values. */
 export function listLabels(dict: keyof typeof dicts, value: string, lang: Language): string {
-  if (!value) return "—";
+  if (!value) return "-";
   return value
     .split(/[,;]\s*/)
     .map((v) => labelFor(dict, v.trim(), lang))
@@ -100,7 +100,7 @@ export function listLabels(dict: keyof typeof dicts, value: string, lang: Langua
 
 /** Translate a crop value via i18n keys (crop.*). */
 export function cropLabel(value: string, lang: Language): string {
-  if (!value) return "—";
+  if (!value) return "-";
   const key = `crop.${value}`;
   const tr = t(key, lang);
   return tr === key ? value : tr;
@@ -108,7 +108,7 @@ export function cropLabel(value: string, lang: Language): string {
 
 /** Translate a weed value via i18n keys (weed.*). */
 export function weedLabel(value: string, lang: Language): string {
-  if (!value) return "—";
+  if (!value) return "-";
   const key = `weed.${value}`;
   const tr = t(key, lang);
   return tr === key ? value : tr;
@@ -116,13 +116,14 @@ export function weedLabel(value: string, lang: Language): string {
 
 /** Translate an equipment value via i18n keys (equip.*). */
 export function equipLabel(value: string, lang: Language): string {
-  if (!value) return "—";
+  if (!value) return "-";
   const key = `equip.${value}`;
   const tr = t(key, lang);
   return tr === key ? value : tr;
 }
 
 export function plain(value: unknown): string {
-  if (value === null || value === undefined || value === "") return "—";
+  if (value === null || value === undefined || value === "") return "-";
   return String(value);
 }
+

@@ -1,4 +1,4 @@
-// Generates an English-only PDF of a farmer's enrollment form,
+﻿// Generates an English-only PDF of a farmer's enrollment form,
 // matching the OCF-SPIN Farmer Enrollment & Baseline Form layout.
 
 import jsPDF from "jspdf";
@@ -123,11 +123,11 @@ export function downloadFarmerPdf(f: FarmerLike) {
     ["Pincode", plain(f.pincode)],
   ]);
 
-  // SECTION 3: Reference (placeholder — not collected separately)
+  // SECTION 3: Reference (placeholder, not collected separately)
   heading("SECTION 3: Reference");
   kv([
-    ["Reference Person", "—"],
-    ["Forwarded By", "—"],
+    ["Reference Person", "-"],
+    ["Forwarded By", "-"],
   ]);
 
   // SECTION 4: Farming Experience & Organic Status
@@ -234,7 +234,7 @@ export function downloadFarmerPdf(f: FarmerLike) {
     .join(", ");
   kv([
     ["Owns Equipment?", labelFor("yesNo", f.ownsEquipment || "no", "en")],
-    ["Equipment Owned", equipDetails || "—"],
+    ["Equipment Owned", equipDetails || "-"],
     ["Nearest Equipment Center (km)", plain(f.nearestEquipmentKm)],
     ["Market Distance (km)", plain(e.marketDistance)],
   ]);
@@ -253,8 +253,8 @@ export function downloadFarmerPdf(f: FarmerLike) {
   // SECTION 12: Insurance
   heading("SECTION 12: Insurance Details");
   kv([
-    ["Crop Insurance", "—"],
-    ["Health Insurance", "—"],
+    ["Crop Insurance", "-"],
+    ["Health Insurance", "-"],
   ]);
 
   // SECTION 13: Consent & Declaration
@@ -263,7 +263,7 @@ export function downloadFarmerPdf(f: FarmerLike) {
     ["Consent Given", labelFor("yesNo", f.consentGiven || "no", "en")],
     ["Consent Date", plain(f.consentDate)],
     ["Status", plain(f.status)],
-    ["Registered On", f.createdAt ? new Date(f.createdAt).toLocaleString() : "—"],
+    ["Registered On", f.createdAt ? new Date(f.createdAt).toLocaleString() : "-"],
   ]);
 
   ensureSpace(80);
@@ -302,3 +302,4 @@ export function downloadFarmerPdf(f: FarmerLike) {
   const safeId = (f.farmerId || "farmer").replace(/[^a-z0-9-]+/gi, "_");
   doc.save(`OCF-SPIN_${safeId}.pdf`);
 }
+

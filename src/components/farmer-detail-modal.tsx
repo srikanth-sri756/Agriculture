@@ -43,7 +43,7 @@ export default function FarmerDetailModal({ farmer, initialLang, onClose }: Prop
   const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
     <div className="flex flex-col">
       <span className="text-xs uppercase tracking-wide text-green-700 font-medium">{label}</span>
-      <span className="text-green-950 break-words">{value || "—"}</span>
+      <span className="text-green-950 break-words">{value || "-"}</span>
     </div>
   );
 
@@ -137,7 +137,7 @@ export default function FarmerDetailModal({ farmer, initialLang, onClose }: Prop
                 </thead>
                 <tbody>
                   {(f.lands ?? []).length === 0 ? (
-                    <tr><td colSpan={7} className="px-2 py-3 text-center text-gray-400">—</td></tr>
+                    <tr><td colSpan={7} className="px-2 py-3 text-center text-gray-400">-</td></tr>
                   ) : (f.lands ?? []).map((l, i) => (
                     <tr key={i} className="border-t border-green-100">
                       <td className="px-2 py-1">{i + 1}</td>
@@ -172,7 +172,7 @@ export default function FarmerDetailModal({ farmer, initialLang, onClose }: Prop
                 </thead>
                 <tbody>
                   {(f.crops ?? []).length === 0 ? (
-                    <tr><td colSpan={6} className="px-2 py-3 text-center text-gray-400">—</td></tr>
+                    <tr><td colSpan={6} className="px-2 py-3 text-center text-gray-400">-</td></tr>
                   ) : (f.crops ?? []).map((c, i) => (
                     <tr key={i} className="border-t border-green-100">
                       <td className="px-2 py-1">{i + 1}</td>
@@ -199,7 +199,7 @@ export default function FarmerDetailModal({ farmer, initialLang, onClose }: Prop
 
           <Section title={lang === "en" ? "Section 8: Weeds Management" : "విభాగం 8: కలుపు నిర్వహణ"}>
             {weeds.length === 0 ? (
-              <Row label="—" value="—" />
+              <Row label="-" value="-" />
             ) : (
               weeds.map(([k, v]) => (
                 <Row key={k} label={weedLabel(k, lang)} value={`${v}%`} />
@@ -217,7 +217,7 @@ export default function FarmerDetailModal({ farmer, initialLang, onClose }: Prop
             <Row
               label={t("field.equipmentDetails", lang)}
               value={(f.equipmentDetails || "")
-                .split(",").filter(Boolean).map((v) => equipLabel(v.trim(), lang)).join(", ") || "—"}
+                                .split(",").filter(Boolean).map((v) => equipLabel(v.trim(), lang)).join(", ") || "-"}
             />
             <Row label={t("field.nearestEquipment", lang)} value={plain(f.nearestEquipmentKm)} />
           </Section>
@@ -236,7 +236,7 @@ export default function FarmerDetailModal({ farmer, initialLang, onClose }: Prop
             <Row label={lang === "en" ? "Status" : "స్థితి"} value={plain(f.status)} />
             <Row
               label={lang === "en" ? "Registered" : "నమోదు తేదీ"}
-              value={f.createdAt ? new Date(f.createdAt).toLocaleString() : "—"}
+              value={f.createdAt ? new Date(f.createdAt).toLocaleString() : "-"}
             />
           </Section>
         </div>

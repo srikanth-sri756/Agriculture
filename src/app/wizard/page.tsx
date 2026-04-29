@@ -348,7 +348,7 @@ export default function WizardPage() {
       <div className="max-w-3xl mx-auto px-4 pb-8">
         <div key={step} className="glass-card rounded-2xl p-6 animate-fade-up">
           <h2 className="text-xl font-bold text-green-900 mb-1">{t(`step.${step}`, lang)}</h2>
-          <p className="text-sm text-green-600 mb-3">{t("app.subtitle", lang)} — Step {step} of {TOTAL_STEPS}</p>
+          <p className="text-sm text-green-600 mb-3">{t("app.subtitle", lang)} · Step {step} of {TOTAL_STEPS}</p>
           {farmingType && (
             <div className="mb-5 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs">
               <span className="text-emerald-700 font-semibold">{t("farmingType.field", lang)}:</span>

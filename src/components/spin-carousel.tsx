@@ -36,7 +36,7 @@ const seedSlides: Slide[] = [
   {
     title: "For Food",
     tagline: "Nourishing the nation",
-    desc: "Seeds that feed nations — ensuring food security through organic, high-quality seed varieties grown on regenerated soil.",
+    desc: "Seeds that feed nations: ensuring food security through organic, high-quality seed varieties grown on regenerated soil.",
     gradient: "from-emerald-600 via-green-700 to-lime-700",
     accent: "text-lime-200",
     icon: Wheat,
@@ -44,7 +44,7 @@ const seedSlides: Slide[] = [
   {
     title: "For Life",
     tagline: "Biodiversity, restored",
-    desc: "Seeds that sustain ecosystems — preserving biodiversity and fostering life in every grain we plant back into the earth.",
+    desc: "Seeds that sustain ecosystems: preserving biodiversity and fostering life in every grain we plant back into the earth.",
     gradient: "from-amber-500 via-orange-600 to-rose-600",
     accent: "text-amber-100",
     icon: HeartPulse,
@@ -52,7 +52,7 @@ const seedSlides: Slide[] = [
   {
     title: "For Nutrition",
     tagline: "Wellness, by design",
-    desc: "Seeds rich in micro-nutrients — combating malnutrition with nature's own formulations and time-tested heirloom varieties.",
+    desc: "Seeds rich in micro-nutrients: combating malnutrition with nature's own formulations and time-tested heirloom varieties.",
     gradient: "from-teal-500 via-cyan-600 to-sky-700",
     accent: "text-cyan-100",
     icon: Apple,
@@ -60,7 +60,7 @@ const seedSlides: Slide[] = [
   {
     title: "For Seed",
     tagline: "Self-reliant farming",
-    desc: "Seeds that perpetuate — building self-reliant farming through indigenous seed banks owned by the community.",
+    desc: "Seeds that perpetuate: building self-reliant farming through indigenous seed banks owned by the community.",
     gradient: "from-violet-600 via-purple-700 to-fuchsia-700",
     accent: "text-violet-100",
     icon: Recycle,
@@ -71,7 +71,7 @@ const pestSlides: Slide[] = [
   {
     title: "Biocontrol Agents",
     tagline: "Nature vs. nature",
-    desc: "Release ladybugs, lacewings, and trichogramma to keep aphids and bollworms in check — no chemicals required.",
+    desc: "Release ladybugs, lacewings, and trichogramma to keep aphids and bollworms in check, no chemicals required.",
     gradient: "from-amber-500 via-orange-600 to-yellow-600",
     accent: "text-amber-100",
     icon: Bug,
@@ -87,7 +87,7 @@ const pestSlides: Slide[] = [
   {
     title: "Companion Planting",
     tagline: "Diversity is defense",
-    desc: "Marigolds, basil, and trap crops confuse pests and attract beneficial insects — turning your field into a balanced ecosystem.",
+    desc: "Marigolds, basil, and trap crops confuse pests and attract beneficial insects, turning your field into a balanced ecosystem.",
     gradient: "from-orange-500 via-rose-500 to-pink-600",
     accent: "text-rose-100",
     icon: Flower2,
@@ -114,7 +114,7 @@ const infectionSlides: Slide[] = [
   {
     title: "Soil Health First",
     tagline: "Strong roots, strong defence",
-    desc: "Living soil rich in mycorrhizae and humus builds plant immunity from the ground up — disease starts where soil ends.",
+    desc: "Living soil rich in mycorrhizae and humus builds plant immunity from the ground up. Disease starts where soil ends.",
     gradient: "from-amber-700 via-orange-700 to-rose-700",
     accent: "text-amber-100",
     icon: Mountain,
@@ -165,7 +165,7 @@ const nutrientSlides: Slide[] = [
   {
     title: "Water & Sun",
     tagline: "Balance is everything",
-    desc: "Drip irrigation, mulching, and canopy management turn light and water into yield — without depleting the land.",
+    desc: "Drip irrigation, mulching, and canopy management turn light and water into yield, without depleting the land.",
     gradient: "from-sky-600 via-cyan-600 to-amber-500",
     accent: "text-sky-100",
     icon: Droplets,
@@ -177,7 +177,7 @@ const spinItems = [
     letter: "S",
     title: "Seed",
     icon: Sprout,
-    desc: "The foundation of organic farming — choose the right seed for the right soil.",
+    desc: "The foundation of organic farming: choose the right seed for the right soil.",
     color: "bg-green-600",
     lightColor: "bg-green-50",
     borderColor: "border-green-300",
