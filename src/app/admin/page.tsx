@@ -22,8 +22,10 @@ import PageBackground from "@/components/page-background";
 import * as XLSX from "xlsx";
 import {
   Sprout, LogOut, Search, Filter, Download, ChevronUp, ChevronDown,
-  ChevronLeft, ChevronRight, Users, Landmark, MapPin, BarChart3, CheckCircle, XCircle, Clock, Edit,
+  ChevronLeft, ChevronRight, Users, Landmark, MapPin, BarChart3, CheckCircle, XCircle, Clock, Edit, Eye,
 } from "lucide-react";
+import FarmerDetailModal from "@/components/farmer-detail-modal";
+import type { FarmerLike } from "@/lib/farmer-pdf";
 
 interface FarmerRow {
   id: string;
@@ -90,6 +92,7 @@ export default function AdminDashboard() {
   const [districtFilter, setDistrictFilter] = useState("");
   const [cropFilter, setCropFilter] = useState("");
   const [landTypeFilter, setLandTypeFilter] = useState("");
+  const [selectedFarmer, setSelectedFarmer] = useState<FarmerLike | null>(null);
 
   const { data: farmers = [], isLoading } = useQuery({
     queryKey: ["farmers"],
@@ -197,6 +200,23 @@ export default function AdminDashboard() {
         }`}>
           {info.getValue() === "yes" ? "✓" : "✗"}
         </span>
+      ),
+    }),
+    columnHelper.display({
+      id: "actions",
+      header: lang === "en" ? "Actions" : "చర్యలు",
+      cell: ({ row }) => (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedFarmer(row.original as unknown as FarmerLike);
+          }}
+          className="flex items-center gap-1 px-2 py-1 rounded-md bg-green-700 text-white text-xs font-medium hover:bg-green-600 transition"
+          title={lang === "en" ? "View & download as PDF" : "చూడు & PDF డౌన్‌లోడ్"}
+        >
+          <Eye className="w-3.5 h-3.5" />
+          {lang === "en" ? "View" : "చూడు"}
+        </button>
       ),
     }),
   ], [lang]);
@@ -470,7 +490,11 @@ export default function AdminDashboard() {
                   </tr>
                 ) : (
                   table.getRowModel().rows.map((row) => (
-                    <tr key={row.id} className="border-b border-green-50 hover:bg-green-50/50 transition">
+                    <tr
+                      key={row.id}
+                      onClick={() => setSelectedFarmer(row.original as unknown as FarmerLike)}
+                      className="border-b border-green-50 hover:bg-green-50/50 transition cursor-pointer"
+                    >
                       {row.getVisibleCells().map((cell) => (
                         <td key={cell.id} className="px-4 py-3 text-green-900 whitespace-nowrap">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -510,6 +534,14 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {selectedFarmer && (
+        <FarmerDetailModal
+          farmer={selectedFarmer}
+          initialLang={lang}
+          onClose={() => setSelectedFarmer(null)}
+        />
+      )}
     </div>
   );
 }
