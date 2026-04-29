@@ -679,10 +679,10 @@ export default function SplashClient() {
         >
           <ul className="grid gap-3 sm:gap-4 w-full text-center">
             {[
-              "All new natural farming with renewable Energy sources",
-              "Program designed by expert farmer with latest improved science & chemistry",
-              "Describing the new definition for organic farming - a part of natural farming",
-              "New era in natural (organic) farming",
+              "All New Natural Farming With Renewable Energy Sources",
+              "Program Designed By Expert Farmer With Latest Improved Science & Chemistry",
+              "Describing The New Definition For Organic Farming - A Part Of Natural Farming",
+              "New Era In Natural (Organic) Farming",
             ].map((line, i) => (
               <li
                 key={i}
