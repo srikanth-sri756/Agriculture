@@ -187,14 +187,18 @@ function TrishulItem({
   ease: string;
 }) {
   const [broken, setBroken] = useState(false);
+  // Convert original px sizes to vmin so the shape stays identical on every
+  // device/aspect-ratio. The wrapper is a 100vmin × 100vmin square, so 1vmin
+  // is 1% of that square on every screen.
+  const sizeVmin = it.size * 0.1;
   return (
     <div
       className="absolute will-change-transform rounded-full overflow-hidden flex items-center justify-center"
       style={{
         left: `${it.fx}%`,
         top: `${it.fy}%`,
-        width: `${it.size}px`,
-        height: `${it.size}px`,
+        width: `${sizeVmin}vmin`,
+        height: `${sizeVmin}vmin`,
         transform: itemsFormed
           ? "translate(-50%, -50%) scale(1) rotate(0deg)"
           : scattering
@@ -231,7 +235,7 @@ function TrishulItem({
         <span
           aria-hidden
           style={{
-            fontSize: `${Math.round(it.size * 0.55)}px`,
+            fontSize: `${sizeVmin * 0.55}vmin`,
             filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
           }}
         >
@@ -549,10 +553,18 @@ export default function SplashClient() {
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           TRISHUL — crops, flowers, veggies form a trident
+          Rendered inside a fixed 100vmin × 100vmin square so the trishul
+          shape is identical on every device / aspect ratio.
          ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <div
-        className="absolute inset-0 z-20 pointer-events-none"
+        className="absolute z-20 pointer-events-none"
         style={{
+          width: "100vmin",
+          height: "100vmin",
+          left: "50%",
+          top: "50%",
+          marginLeft: "-50vmin",
+          marginTop: "-50vmin",
           opacity: showItems ? 1 : 0,
           transform: itemsFormed
             ? "translate(0, 32%) rotate(40deg) scale(0.52)"
