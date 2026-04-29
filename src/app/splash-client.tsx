@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Volume2, VolumeX, Sprout, Check, X } from "lucide-react";
+import { ArrowRight, Sprout, Check, X } from "lucide-react";
 import { useLang } from "@/components/providers";
 import { t } from "@/lib/i18n";
 
@@ -249,8 +249,6 @@ function TrishulItem({
 export default function SplashClient() {
   const [phase, setPhase] = useState<Phase>("black");
   const [items, setItems] = useState<Item[]>([]);
-  const [audioOn, setAudioOn] = useState(true);
-  const [audioBlocked, setAudioBlocked] = useState(false);
   const [ganapatiBroken, setGanapatiBroken] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const [selectedFt, setSelectedFt] = useState<FarmingType | "">("");
@@ -279,49 +277,56 @@ export default function SplashClient() {
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Try to autoplay OM audio; if the browser blocks it, start playback on
-  // the very first user interaction so the chant is effectively on by default.
+  // OM chant on by default. Browsers block autoplay-with-sound, so we:
+  //  1. Start playing MUTED on mount (always allowed) so the audio is queued.
+  //  2. Try to unmute immediately; if that's rejected, unmute on the first
+  //     user gesture (pointer / click / touch / keydown / scroll).
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
+    a.muted = true;
     a.volume = 0.55;
+    const playPromise = a.play().catch(() => {});
 
-    const tryPlay = () =>
-      a
-        .play()
-        .then(() => {
-          setAudioBlocked(false);
-          setAudioOn(true);
-          return true;
-        })
-        .catch(() => false);
+    const unmute = () => {
+      a.muted = false;
+      a.volume = 0.55;
+      // Make sure it's actually playing (some browsers pause when muted->unmuted)
+      a.play().catch(() => {});
+    };
 
-    let cleanup = () => {};
-    tryPlay().then((ok) => {
-      if (ok) return;
-      setAudioBlocked(true);
-      const events: (keyof DocumentEventMap)[] = [
-        "pointerdown",
-        "click",
-        "touchstart",
-        "keydown",
-      ];
-      const onFirstGesture = () => {
-        tryPlay();
-        events.forEach((e) =>
-          document.removeEventListener(e, onFirstGesture, true)
-        );
-      };
-      events.forEach((e) =>
-        document.addEventListener(e, onFirstGesture, { capture: true, once: false })
-      );
-      cleanup = () =>
-        events.forEach((e) =>
-          document.removeEventListener(e, onFirstGesture, true)
-        );
+    // Try to unmute right away (works if the page already has user activation,
+    // e.g. after a reload triggered by a click)
+    Promise.resolve(playPromise).then(() => {
+      try {
+        unmute();
+      } catch {
+        /* fall through to gesture listener */
+      }
     });
 
-    return () => cleanup();
+    const events: (keyof DocumentEventMap)[] = [
+      "pointerdown",
+      "click",
+      "touchstart",
+      "keydown",
+      "scroll",
+    ];
+    const onFirstGesture = () => {
+      unmute();
+      events.forEach((e) =>
+        document.removeEventListener(e, onFirstGesture, true)
+      );
+    };
+    events.forEach((e) =>
+      document.addEventListener(e, onFirstGesture, { capture: true })
+    );
+
+    return () => {
+      events.forEach((e) =>
+        document.removeEventListener(e, onFirstGesture, true)
+      );
+    };
   }, []);
 
   // Fade OM audio out when entering the flag phase
@@ -338,27 +343,10 @@ export default function SplashClient() {
       if (i >= steps) {
         clearInterval(id);
         a.pause();
-        setAudioOn(false);
       }
     }, 80);
     return () => clearInterval(id);
   }, [phase]);
-
-  const toggleAudio = () => {
-    const a = audioRef.current;
-    if (!a) return;
-    if (a.paused) {
-      a.play()
-        .then(() => {
-          setAudioOn(true);
-          setAudioBlocked(false);
-        })
-        .catch(() => setAudioBlocked(true));
-    } else {
-      a.pause();
-      setAudioOn(false);
-    }
-  };
 
   const ease = "cubic-bezier(0.16, 1, 0.3, 1)";
   const showGanapati = phase !== "black" && phase !== "flag";
@@ -378,30 +366,17 @@ export default function SplashClient() {
     <div className="min-h-screen relative overflow-hidden bg-[#050201] select-none">
       {/* Background OM chant audio. Drop your file at /public/audio/om.mp3.
           Rendered only when the file is detected, to avoid a 404 in the console. */}
-      <audio ref={audioRef} src="/audio/om.mp3" loop autoPlay preload="auto" />
-
-      {/* Audio toggle (top-right) — hidden once flag phase begins */}
-      <button
-        type="button"
-        onClick={toggleAudio}
-        aria-label={audioOn ? "Mute audio" : "Play OM chant"}
-        className="absolute top-3 right-3 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md border transition-all"
-        style={{
-          background: "rgba(20, 12, 4, 0.55)",
-          borderColor: "rgba(253, 230, 138, 0.45)",
-          color: "#fde68a",
-          opacity: showFlag ? 0 : 1,
-          pointerEvents: showFlag ? "none" : "auto",
-          transition: `opacity 0.8s ${ease}`,
-        }}
-      >
-        {audioOn && !audioBlocked ? (
-          <Volume2 className="w-3.5 h-3.5" />
-        ) : (
-          <VolumeX className="w-3.5 h-3.5" />
-        )}
-        {audioBlocked ? "Tap for ॐ" : audioOn ? "ॐ On" : "ॐ Off"}
-      </button>
+      <audio
+        ref={audioRef}
+        src="/audio/om.mp3"
+        loop
+        autoPlay
+        playsInline
+        // Start muted so browsers always allow autoplay; we unmute via JS on
+        // mount or on the first user gesture (see effect above).
+        muted
+        preload="auto"
+      />
 
       {/* Paddy + bamboo blurred photo background (animation phases) */}
       <div
