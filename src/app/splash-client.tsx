@@ -275,14 +275,49 @@ export default function SplashClient() {
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  // Try to autoplay OM audio; fall back to mute hint if browser blocks
+  // Try to autoplay OM audio; if the browser blocks it, start playback on
+  // the very first user interaction so the chant is effectively on by default.
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
     a.volume = 0.55;
-    a.play()
-      .then(() => setAudioBlocked(false))
-      .catch(() => setAudioBlocked(true));
+
+    const tryPlay = () =>
+      a
+        .play()
+        .then(() => {
+          setAudioBlocked(false);
+          setAudioOn(true);
+          return true;
+        })
+        .catch(() => false);
+
+    let cleanup = () => {};
+    tryPlay().then((ok) => {
+      if (ok) return;
+      setAudioBlocked(true);
+      const events: (keyof DocumentEventMap)[] = [
+        "pointerdown",
+        "click",
+        "touchstart",
+        "keydown",
+      ];
+      const onFirstGesture = () => {
+        tryPlay();
+        events.forEach((e) =>
+          document.removeEventListener(e, onFirstGesture, true)
+        );
+      };
+      events.forEach((e) =>
+        document.addEventListener(e, onFirstGesture, { capture: true, once: false })
+      );
+      cleanup = () =>
+        events.forEach((e) =>
+          document.removeEventListener(e, onFirstGesture, true)
+        );
+    });
+
+    return () => cleanup();
   }, []);
 
   // Fade OM audio out when entering the flag phase
@@ -339,7 +374,7 @@ export default function SplashClient() {
     <div className="min-h-screen relative overflow-hidden bg-[#050201] select-none">
       {/* Background OM chant audio. Drop your file at /public/audio/om.mp3.
           Rendered only when the file is detected, to avoid a 404 in the console. */}
-      <audio ref={audioRef} src="/audio/om.mp3" loop preload="auto" />
+      <audio ref={audioRef} src="/audio/om.mp3" loop autoPlay preload="auto" />
 
       {/* Audio toggle (top-right) — hidden once flag phase begins */}
       <button
