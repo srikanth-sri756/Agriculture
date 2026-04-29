@@ -567,9 +567,9 @@ export default function SplashClient() {
           marginTop: "-50vmin",
           opacity: showItems ? 1 : 0,
           transform: itemsFormed
-            ? "translate(0, 32%) rotate(40deg) scale(0.52)"
+            ? "translate(0, 22%) rotate(40deg) scale(0.7)"
             : phase === "expand" || showFlag
-            ? "translate(0, 32%) rotate(40deg) scale(0.52, 0)"
+            ? "translate(0, 22%) rotate(40deg) scale(0.7, 0)"
             : "rotate(0deg) scale(1)",
           transformOrigin: "50% 50%",
           transition: `opacity 1.4s ${ease}, transform 1.6s ${ease}`,
