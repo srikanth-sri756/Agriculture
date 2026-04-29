@@ -129,3 +129,24 @@ model Economics {
   farmerId            String  @unique
   farmer              Farmer  @relation(fields: [farmerId], references: [id], onDelete: Cascade)
 }
+
+// Admin-authored content shown to farmers on their dashboard:
+// announcements, news, success stories, etc.
+model Post {
+  id          String   @id @default(cuid())
+  title       String
+  body        String   @default("")
+  category    String   @default("") // free-form tag, e.g. "Wheat", "Subsidy"
+  // "feed" = general announcement / news, "success_story" = farmer success story
+  type        String   @default("feed")
+  // JSON-encoded array of base64 data URLs (admin-uploaded images)
+  images      String   @default("[]")
+  // Optional explicit author name; falls back to "Admin" when empty.
+  authorName  String   @default("")
+  authorId    String   @default("")
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([type, createdAt])
+}

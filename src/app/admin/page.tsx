@@ -25,6 +25,7 @@ import {
   ChevronLeft, ChevronRight, Users, Landmark, MapPin, BarChart3, CheckCircle, XCircle, Clock, Edit, Eye,
 } from "lucide-react";
 import FarmerDetailModal from "@/components/farmer-detail-modal";
+import AdminPosts from "@/components/admin-posts";
 import type { FarmerLike } from "@/lib/farmer-pdf";
 
 interface FarmerRow {
@@ -373,6 +374,9 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {/* Posts manager — admin can publish feed announcements & success stories */}
+        <AdminPosts />
 
         {/* Table Controls */}
         <div className="bg-white rounded-2xl shadow-lg border border-green-100 overflow-hidden">

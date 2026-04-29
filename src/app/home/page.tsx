@@ -12,6 +12,7 @@ import {
 import SpinCarousel from "@/components/spin-carousel";
 import ScrollReveal from "@/components/scroll-reveal";
 import AnimatedCounter from "@/components/animated-counter";
+import HomeFeedSection from "@/components/home-feed-section";
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
@@ -43,6 +44,7 @@ export default async function HomePage() {
                 { href: "#spin", label: "SPIN" },
                 { href: "#about", label: "About" },
                 { href: "#how-it-works", label: "How It Works" },
+                { href: "/feeds", label: "Feeds" },
                 { href: "#contact", label: "Contact" },
               ].map(link => (
                 <a key={link.href} href={link.href} className="nav-link px-4 py-2 rounded-lg hover:bg-green-50 transition-colors">
@@ -295,6 +297,9 @@ export default async function HomePage() {
           </div>
         </ScrollReveal>
       </section>
+
+      {/* ─── ADMIN POSTS / NOTIFICATIONS (visible to logged-in farmers) ─── */}
+      <HomeFeedSection />
 
       {/* ─── SPIN SECTION ─── */}
       <section id="spin" className="py-24 bg-gradient-to-b from-white via-green-50/40 to-white">

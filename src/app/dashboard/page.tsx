@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -8,9 +9,10 @@ import { useLang } from "@/components/providers";
 import { t } from "@/lib/i18n";
 import LanguageToggle from "@/components/language-toggle";
 import PageBackground from "@/components/page-background";
+import PostFeed from "@/components/post-feed";
 import {
   Sprout, LogOut, User, MapPin, Landmark, TrendingUp, Tractor, Droplets,
-  Leaf, CreditCard, ClipboardCheck, Edit, Clock, CheckCircle, ArrowRight,
+  Leaf, CreditCard, ClipboardCheck, Edit, Clock, CheckCircle, ArrowRight, Bell,
 } from "lucide-react";
 
 interface FarmerData {
@@ -182,6 +184,13 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Link
+              href="/feeds"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-green-700 hover:bg-green-50 text-sm font-medium transition"
+            >
+              <Bell className="w-4 h-4" />
+              {lang === "en" ? "Feeds" : "ఫీడ్స్"}
+            </Link>
             <LanguageToggle />
             <button
               onClick={async () => {
@@ -198,6 +207,9 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+        {/* Admin-published feed & success stories */}
+        <PostFeed />
+
         {/* Profile Header Card */}
         <div className="glass-card rounded-2xl p-6 animate-fade-up">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
